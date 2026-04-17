@@ -1,0 +1,856 @@
+--- PAGE 1 ---
+5572 IEEETRANSACTIONSONVEHICULARTECHNOLOGY,VOL.73,NO.4,APRIL2024
+Online Positioning of a Drone-Mounted Base
+Station in Emergency Scenarios
+T.R.Pijnappel ,J.L.vandenBerg ,S.C.Borst ,andR.Litjens
+Abstract—Wirelesscommunicationnetworksprovideacritical relief and/or restore coverage. Also in case of events with
+infrastructure,particularlyinemergencysituationsduetodisrup- massivecrowds/traffichotspotssuchassportsgames,festivalsor
+tiveeventssuchasnaturaldisastersorterroristattacks.However,in
+large-scaledemonstrations,anetworkmayfacecapacityissues
+thesekindsofscenariospartofthenetworkmaynolongerbeoper-
+and can therefore benefit from the deployment of drone base
+ationalandatraffichotspotmayemerge,whichmayresultincover-
+ageand/orcapacityissues.Deployingself-steeringdrone-mounted stations[1].
+basestationsoffersapotentialmethodtoquicklyrestorecoverage The effective deployment of a drone base station crucially
+and/orprovidecapacityreliefinsuchsituations,butappropriate relies on determining an appropriate 3D-position. A well-
+positioningiscrucialinorderforadronebasestationtobetruly
+positioned drone can significantly improve performance as it
+effective. Motivated by that challenge, we propose a data-driven
+is able to support users that otherwise would be unserved.
+algorithm to optimize the position of a drone base station in a
+scenariowithasitefailureandemergenceofatraffichotspot.We Furthermore, served users may experience a stronger signal
+demonstrate that the use of a drone, when properly positioned, and experience less interference when served by the drone.
+yieldssignificantperformancegains,andthatouralgorithmout- On the other hand, a poorly positioned drone can potentially
+performsbenchmarkmechanismsinawiderangeofscenarios.In
+even degrade network performance as it may cause additional
+addition,weshowthatouralgorithmisabletofindanear-optimal
+interference for users that are not connected to the drone. It
+positionforthedroneinareasonableamountoftime,andevenhas
+theabilitytotracktheoptimalpositionincaseofamovinghotspot. canalsobethecasethatthedroneunintentionallyattractsusers
+that are better off when served by one of the still operational
+Index Terms—5G, drone base stations, drone base station
+regularbasestationsandenjoyingthebenefitsofe.g.theirhigher
+positioning,data-drivenalgorithm,dynamictraffichotspot.
+transmitpowerorenhancedbeamformingcapabilities.
+The drone positioning problem is particularly challenging,
+I. INTRODUCTION sincetheoptimalpositiondependsonmanyaspects,including
+THE key requirements in the planning and optimization thenatureofthescenario(crowdedeventornetworkdisruption),
+andthegenerallyunknownpropagationcharacteristicsandspa-
+of wireless cellular networks include the provisioning of
+tialuserdistribution.Moreover,incaseofanetworkdisruption
+adequatecoverageandsufficienttraffichandlingcapacity.While
+involving both a site failure and the emergence of a traffic
+well-engineered networks meet these requirements in normal
+hotspot,optimizingthedronepositionmayinvolveachallenging
+conditions, they may not be able to do so in situations where
+trade-offbetweenbringingcapacitytothetraffichotspotoralle-
+partofthenetworkisnolongeroperational.Suchsituationsmay
+viatingacoverageholeinducedbythesitefailure.Thistrade-off
+forexampleariseduetonaturaldisasterssuchasearthquakes,
+dependsonthelocationandintensityofthehotspot,whichare
+floodings,orwildfires,orduetoterroristattacks.Inthesecases,
+oftennotaprioriknowninpractice.Inthispaperwedevelopan
+itmaybedifficult,dangerousand/ortime-consumingforarepair
+onlinecontrolalgorithmwhichaddressesthistrade-offanduses
+or maintenance team to access the affected area and restore
+real-timeandpracticallymeasurabledatatofindanappropriate
+the network operations. Especially in these kinds of situations
+position for a drone base station. For this we investigate the
+the deployment of self-steering drone-mounted base stations
+performanceimpactofdifferentcontrolparameterssuchasthe
+offers a flexible and promising method to provide capacity
+drone’s3D-positionanddevelopadronepositioningalgorithm
+basedonthemostimportantcontrolparameters.
+Manuscript received 22 February 2023; revised 7 August 2023; accepted
+The remainder of this paper is organized as follows.
+11 September 2023. Date of publication 3 November 2023; date of current
+version22April2024.ThisworkwassupportedbytheNetherlandsOrgani- SectionII-Aprovidesareviewofrelatedliteratureandhighlights
+sationforScientificResearch(NWO)throughGravitation-GrantunderGrant the contribution of this work. In Section III the overall setting
+NETWORKS-024.002.003.ThereviewofthisarticlewascoordinatedbyProf.
+and the key performance metric that we consider throughout
+ZhiguoShi.(Correspondingauthor:T.R.Pijnappel.)
+T.R. Pijnappel and S.C. Borst are with Eindhoven University of Tech- thepaperareintroduced.SectionIVelaboratesonthetrade-offs
+nology, 5600 MB Eindhoven, The Netherlands (e-mail: t.r.pijnappel@tue.nl; andchallengesindetermininganappropriatepositionofadrone
+s.c.borst@tue.nl).
+basestation.InSectionVwepresentthemodelingassumptions
+J.L.vandenBergiswiththeUniversityofTwente,7522NBEnschede,The
+Netherlands(e-mail:j.l.vandenberg@utwente.nl). underlyingtheconductedsimulations,andsubsequentlydiscuss
+R.LitjensiswithTNO,2595DATheHague,TheNetherlands,andalsowith the results of a simulation-based sensitivity analysis involving
+DelftUniversityofTechnology,2628CDDelft,TheNetherlands(e-mail:remco.
+a static drone in Section VI. The proposed data-driven drone
+litjens@tno.nl).
+DigitalObjectIdentifier10.1109/TVT.2023.3329960 positioning algorithm is specified in Section VII, followed by
+©2023TheAuthors.ThisworkislicensedunderaCreativeCommonsAttribution-NonCommercial-NoDerivatives4.0License.Formoreinformation,see
+https://creativecommons.org/licenses/by-nc-nd/4.0/
+--- PAGE 2 ---
+PIJNAPPELetal.:ONLINEPOSITIONINGOFADRONE-MOUNTEDBASESTATIONINEMERGENCYSCENARIOS 5573
+theresultsofasimulationstudyinSectionVIIItoexaminethe transmitpowersforthedrones.[12]aimstomaximizecoverage
+performance of the algorithm. Section IX summarizes the key in an emergency scenario by deploying a temporary network
+conclusionsandprovidessometopicsforfurtherresearch. whichconsistsofatruckbasestationandmultipledronebase
+stations.AknowndrawbackoftheusedQ-learningapproachis
+II. RELATEDLITERATUREANDCONTRIBUTION thatitrequiresarelativelylongtimetolearntheenvironment,
+whileinemergencyscenariositisofutmostimportancethatthe
+This section provides an overview of related literature and
+systemisquicklyabletofindtheoptimalpositionsandtherefore
+highlightsthecontributionofthiswork.
+doesnotrequirealonglearningperiod.
+Theauthorsof[13]considertheoptimizationoftheposition
+A. RelatedLiterature
+ofadronebasestationinanonlinesettingwithusermobility.
+Although drone base stations can be used in many situa- Forthisoptimizationtheauthorsaimtominimizethepathlossof
+tions[2],wefocusourliteraturereviewonpapersthatconsider theuserwiththehighestpathlossusingaQ-learningapproach,
+theirdeploymentforenhancingcoverageandcapacityinscenar- agradient-basedsolutionandagreedyalgorithm.
+ioswithcrowdedeventsandpublicsafetysettings.Forthisuse In[14]alayeredarchitectureisproposedwheredronesflying
+casemostpapersaimtooptimizethepositioningofdrones[3], inswarmsatdifferentaltitudesareconsideredasanintegrated
+[4],[5],[6],[7],[8],[9],[10],[11],[12],[13],[14],[15],[16], part of future cellular networks to provide additional capacity
+[17], [18], [19], [20], [21], [22] while some also optimize the andexpandcoverage.Inthiswork,thepositioningofthedrones
+numberofdronesthatneedtobedeployed[3],[4],[5],[6]. at the lowest layer (the drones serving the users) is optimized
+In[3],theauthorsconsideranentirelydrone-based3Dcellular usinganexhaustivesearch,whichisnotedtobedifficultinmore
+networkprovidingwirelesscoveragetodrone-baseduserequip- complexscenarios.
+ments(UEs).Tothisendtheauthorsapproximatedrone-specific Alsotheuseofdronesasrelaystationsisinvestigatedby[15],
+coverageareasbytruncatedoctahedronshapestodeterminethe [16],[17].In[15]theauthorsaimtomaximizethroughputwhile
+requirednumberofdronebasestationsandtheirpositions. takingintoaccountthequalityofserviceoftheusers,capacity
+In [4] a classical branch-and-bound algorithm with a of the backhaul, available bandwidth and available power. For
+relaxation-induced neighborhood search is compared with a thispurposetheproblemisdecomposedintoa3D-positioning
+low-complexityheuristicintheoptimizationofthenumberand problem and a resource allocation problem which are solved
+locationofdronebasestations.Thecomparisonshowsthatthe using a cyclic iterative algorithm. Similarly, [16] designs a
+heuristictendstoconnectmoreusers,butrequiresmoredrones heuristicalgorithmthatjointlyoptimizestheplacementofdrone
+todoso. relays,userassociationandbandwidthallocationsuchthatthe
+The study in [5] compares a simulated annealing approach numberofservedusersinadisasterstruckareaismaximized.
+andageneticalgorithmtominimizethenumberofdronebase In [17] it is noted that both power allocation and positioning
+stationsandoptimizetheir3D-positionsforenergy-efficientcov- of the drones affect system performance. For this reason they
+erageprovisioning.Anotherapproachproposedby[6]and[7] developcriteriaforoptimalpositioningandpowerallocationof
+istouseaparticleswarmoptimizationalgorithmtofindsuitable thedronerelays.
+3D-positionsfordronecells.Theproposedalgorithmstartswith As drones carry a battery they can only be deployed for a
+asetofcandidatesolutionsandtriestoiterativelyimprovethese limitedamountoftime.Toovercomethisissue,[18]proposesto
+solutionswithrespecttoagivenmeasurerelatedtothecapacity, providepowertothedroneusingatetherthatconnectsthedrone
+coverageandspectralefficiency. to the ground. For this setting, the authors study the optimal
+Software-definednetworksofferamethodthatfacilitatesthe placement of such a drone within a so-called hovering region
+executionofthealgorithmandmeasurements,andistherefore thatdependsonthetetherlengthandsurroundingbuildings.
+suitablefortheimplementationofadronepositioningalgorithm. In [19] a sensitivity analysis regarding the position and cell
+E.g.[8]proposesasoftware-definednetworkingbasedapproach selection bias is conducted. This analysis showed that in the
+to construct a more resilient network, where particle swarm given setting the CSR is not very sensitive to the position and
+optimizationisusedforthepositioningofdrones. cellselectionbiaswhentheseareclosetooptimal.
+In [9] a ‘sweep and search’ procedure is proposed to find In[20]theauthorspresentananalyticalapproachtooptimize
+optimallocationsfordronebasestationswiththegoaltoprovide the altitude of drone base stations to provide maximum radio
+coveragetoasmanyusersaspossibleforagivenconstellationof coverageontheground.
+users.Tofindtheoptimalpositionsforthedrones,eachdroneis The authors of [21] propose to use a machine learning ap-
+assignedasearcharea,whereitsearchesforuserclusterswhile proach to detect overloaded cells and formulate an optimiza-
+followingazig-zagpattern. tion problem for the deployment of drone base stations. This
+In [10], [11], [12] the authors use Q-learning to find the optimizationproblemaimstomaximizethenumberofcovered
+optimal placement of drone base stations. [10] considers the usersinoverloadedcellsbyfindingtheoptimal3D-placementof
+useofasingledronebasestationincombinationwithexisting droneswhileminimizingtheenergyconsumptionofthedrones.
+regular base stations with the goal to maximize the aggregate Asallreviewedpapersconsiderdifferentapproaches,incor-
+network throughput. In [11] the use of multiple drone base porateothersystemaspectsand/orpursuedifferentobjectives,
+stationsisconsideredinascenariowithoutregularbasestations. wehighlightthenoveltyofourworkinTableIwhereweindicate
+In this setting the authors aim to find optimal positions and whetherafewkeyaspectsrelatingtotheaddressedscenarioor
+--- PAGE 3 ---
+5574 IEEETRANSACTIONSONVEHICULARTECHNOLOGY,VOL.73,NO.4,APRIL2024
+TABLEI naturallyadaptstothechangingenvironment.Furthermore,[4],
+NOVELASPECTSOFCURRENTPAPERINRELATIONTOCLOSESTPRIORWORK
+[5],[6],[9],[11]onlyconsidertheuseofdronebasestations.In
+this paper we will also take still operational regular sites into
+account. For the described setting we initially consider four
+control parameters (the x, y, z coordinates and a cell selection
+biasknownastheCellIndividualOffsetorCIO),andshowusing
+asimulation-basedsensitivityanalysisthatthealtitudeandCIO
+havelimitedimpactonthechosenperformancemetric,theCall
+SuccessRate(CSR).
+Becauseofthisobservation,theproposedalgorithmwillonly
+adjustthexandycoordinatesofthedrone.Asitisnotpossible
+to accurately measure the CSR in short periods of time, we
+the pursued solution are covered by the most closely related
+identifypracticallymeasurablemetricstodrivetheadjustments
+references. Firstly, we indicate whether the studies consider
+ofthexandycoordinates.However,itisnotclearwhatthemost
+mixed scenarios involving both terrestrial base stations and
+appropriatemetricistodrivetheseadjustments.Astheselection
+dronebasestationsorconsidertheuseofdronesonly.Secondly,
+ofsuchametricisofgreatimportanceforourproposedmethod
+we specify whether the exploited measurements are or can be
+weinvestigateseveralmetricsandcomparetheirperformance.
+realisticallymadeavailableinanoperationalsetting,notingthat
+Theadvantageofthisapproachisthatitonlyreliesonpractically
+anetworkisgenerallyunawareofthefractionofusersthathave
+measurable metrics and does not require any pre-deployment
+no coverage. In the final row we indicate whether the study
+learningorknowledgeofthepropagationenvironment,antenna
+optimizes drone positions (configurations) in a scenario with
+features, location of the hotspot or traffic density. As a result,
+arealisticvariationinthepresenceand/orlocationofusers,or
+theproposedalgorithmcanbeoperationallydeployedinawide
+assumesauserconstellationwhichremainsconstantthroughout
+rangeofscenarios.
+(partsof)theoptimizationprocess.
+For the performance assessment of the algorithm we will
+Althoughthesolutionsproposedby[4],[5],[6],[7],[8],[9],
+examineawiderangeofcoverageandcapacity-limitedscenarios
+[10], [11], [12], [13], [14], [15], [16] seem reasonable, these
+which correspond to both urban and rural environments. For
+solutions require the ability to evaluate the performance for
+these environments we consider various locations and traffic
+all possible configurations of the drone locations at a given
+intensitiesofthehotspot.Moreover,wecompareouralgorithm
+time.Inordertodoso,thesepaperseffectivelyassumethatthe
+with relevant benchmarks: i) no drone assistance; ii) a static
+constellationofactiveusersdoesnotchangewhilethealgorithm
+drone deployed right above the failing site; iii) the algorithm
+searchesfortheoptimalposition.However,thisassumptionhas
+proposedin[22].Weshowthatcomparedtothesebenchmarks
+practicallimitationsindynamicsettingsasboththemovement
+our algorithm has a similar or improved performance in all
+of a drone from one location to another as well as measuring
+scenarios.Lastly,wedemonstratethatouralgorithmisableto
+theperformanceatagivenlocationtakestime,duringwhichthe
+findanear-optimalpositioninafairlyshortamountoftime,and
+constellation of active users is likely to change. To overcome
+eveniscapabletotracktheoptimalpositionincaseofamoving
+thisissue,thealgorithmthatweproposewillnaturallyadaptto
+traffichotspot.
+changesintheconstellationofactiveusersandcanthereforebe
+usedinpractice.Moreover,wewillconsiderscenarioswherea
+traffichotspotmovesaroundovertime.Apartfromthealgorithm
+III. SCENARIOSANDPERFORMANCEMETRIC
+we proposed in [22] the aforementioned solutions from the
+We consider a macro-cellular network whose service provi-
+literaturearenotdesignedforthesekindsofscenarios.
+sioning is impacted by a disruptive event, resulting in a site
+failure. As a consequence of this event, it may be the case
+B. Contributions
+that users are distressed which may lead to the emergence of
+As mentioned earlier, it is challenging to find a good 3D- a traffic hotspot. In this setting, we will consider a total of
+positionforadronebasestationasitdependsonmanyaspects 44 scenarios, characterized by two distinct inter-site distances
+whichareoftenunknownordifficulttomeasure.Thereforewe (ISDs)of500mand3500m(correspondingtoanurbananda
+proposeandassessadata-drivenalgorithmthataimstofindthe rural environment, respectively). For both the urban and rural
+optimal3D-positioninscenarioswithanetworkdisruptionevent environment we consider a case without a traffic hotspot and
+(site failure) where a traffic hotspot may emerge. Compared sevencaseswithdistincthotspotlocations(markedbythecyan
+to [22], we consider a broader range of scenarios (different dots in Fig. 1). When a hotspot is present, we will consider
+hotspot locations for both urban and rural environments), as three different relative traffic intensities in the hotspot. Hence
+wellasscenarioswherethehotspotmovesovertime. the scenarios differ with respect to the type of environment
+Asopposedto[4],[5],[6],[7],[8],[9],[10],[11],[12],[13], (dense urban (DU) or rural (RU)), the location of the hotspot
+[14],[15],[16]whichoptimizethedronepositionforsnapshots definedbythedistancetothefailingsited (inm)andangle
+hotspot
+oftheenvironment(agivenconstellationoftheuserlocations), relativetothex-axisϕ (indegrees),andtherelativetraffic
+hotspot
+we propose an algorithm that optimizes the drone location intensityinthehotspotρ.Inordertoprovideclearreferencesto
+in an online manner. This means that the proposed algorithm thevariousscenarioswhenpresentingthenumericalresults,we
+--- PAGE 4 ---
+PIJNAPPELetal.:ONLINEPOSITIONINGOFADRONE-MOUNTEDBASESTATIONINEMERGENCYSCENARIOS 5575
+However,ifthereisahightrafficintensityinahotspotarea,then
+itmaybebettertopositionthedroneclosetothishotspotarea
+tomakesurethattheusersinthehotspotenjoyfavorableradio
+conditions.
+It is evident that the location of the hotspot is an important
+factor for the optimal drone position, but it is not only the
+distance between the hotspot and the failing site that matters.
+Thepositionofthehotspotrelativetotheazimuthdirectionsof
+the nearest still operational base stations is important as well,
+as it affects the degree to which those base stations can serve
+thehotspottraffic.Consequently,thisalsoaffectsthedegreeto
+which the drone needs to move towards the hotspot and help
+Fig. 1. Best-server areas after the site failure. The different colored areas out.Toillustratethis,considertwoscenarios:scenarioAwitha
+indicatethecellscorrespondingtotheregularbasestations.Theyellowareas
+hotspotlocatedsuchthatthecloseststilloperationalregularsite
+mark coverage holes. The black arrows show the azimuth directions of the
+stilloperationalregularsites,andthecyandotsmarkpossiblelocationsthat hasanantennaaiminginthedirectionofthehotspot(indicated
+we consider for the center of the hotspot. (a) Urban environment. (b) Rural with the letter A in Fig. 1(a)), and scenario B with a hotspot
+environment.
+located equally far from the failing site but with the nearest
+still operational regular cell aimed 60 degrees away from the
+hotspot(indicatedwiththeletterBinFig.1(a)).ForscenarioA,
+denote them in the format “{DU, RU}-d -ϕ -ρ”. For
+hotspot hotspot theUEsinthehotspothavearelativelygoodconnectiontothe
+example“DU-100-90-4”referstoascenariowithadenseurban
+regularbasestationcomparedtothehotspotUEsinscenarioB.
+environment, a traffic hotspot located 100 m from the failing
+Therefore,inscenarioAthedronecanfocusmoreonUEsclose
+siteatan angle of 90 degrees withrespect tothe x-axis where
+to the failing site, and hence the optimal position of the drone
+the traffic intensity is four times higher than elsewhere. While
+willbeclosertothefailingsite.
+it is infeasible to exhaustively evaluate all possible scenarios
+(consideringallpossiblehotspotlocationsandtrafficintensities
+B. AltitudeTrade-off
+in the hotspot), the selected scenarios serve to cover a broad
+rangeofrelevantenvironmentsandtrafficpatterns. Theselectionofthealtitudeinvolvesafewtrade-offsaswell.
+Asmentionedearlier,weadopttheCallSuccessRate(CSR)as First, a higher altitude implies that the distance between the
+performancemetrictoevaluatetheperformanceinthesescenar- drone and the UEs increases, which has a negative impact on
+ios.TheCSRisdefinedasthefractionofcallsthataresuccessful, the path loss, and therefore on the signal strength. Secondly,
+meaning that a call has coverage, is admitted to the system, is a higher altitude also has the advantage that there is a higher
+notdropped,andreceivesitsrequiredminimumbitrateforits probabilityofhavingaline-of-sight(LoS)linkwithaUE,which
+entireduration.TodeterminetheCSRweonlyconsidercallsthat inturnhasapositiveimpactonthepathlossandthereforeonthe
+are initiated in the pre-incident best-server areas of the failing signalstrength.Lastly,anincreasedaltitudehasapositiveimpact
+siteanditsimmediateneighborcells,indicatedbytheblueand on the antenna gain as the UEs will be closer to the antenna’s
+yellow-shaded areas in Fig. 1, with the latter areas indicating main beam, which is directed downwards, which in turn has a
+coverageholescausedbythesitefailure. positiveimpactonthesignalstrength.Overall,thenetresultof
+thesecounteractingeffectsisnon-trivialandultimatelydepends
+on the altitude of the drone and the 2D-distances between the
+IV. KEYCHALLENGES
+UEsandthedrone.
+In this section we will elaborate on various challenges and Becauseachangeinaltitudeaffectsthesignalstrength,italso
+trade-offsassociatedwithfindinganappropriatepositionfora changestheareawherethedroneprovidescoverage.Atthesame
+drone-mountedbasestationwithrespecttotheCSR.Tooptimize time a change in altitude also affects the amount of resources
+theCSR,weconsiderfourcontrolparametersofthedronethat thatusersrequire,whichmayleadtoatrade-offbetweenserving
+can be adjusted, namely the x, y and z coordinates and the userswithagoodbitrateorprovidingcoveragetoalargerarea.
+so-called Cell Individual Offset (CIO) which is used for cell
+selection(steeringtraffictowardsorawayfromthedrone)with C. CIO-Trade-off
+the intention to better balance the loads of the drone and its
+As mentioned before, the CIO (given in dB throughout this
+neighboringcells.
+paper) is used as a cell selection bias with the goal to balance
+theloads.Forthecellselection,welookatallcellsthatprovide
+A. 2D-PositionTrade-off
+coveragetotheUE,andfromthesecellsselectthecoveringcell
+One trade-off with respect to the 2D-position (x and y co- withthehighestvalueofRSRP+CIO,whereRSRPdenotesthe
+ordinates) of the drone arises when deciding whether to bring Reference Signal Received Power in dBm. Therefore the CIO
+capacitytoahotspotareaortoprovidecoveragenearthefailing isusedtosteertraffictowards(positiveCIO)oraway(negative
+site.Ifthereisnohotspot,orthehotspotisnottoointense,then CIO)fromthedronetobalancetheloadsbetweenthedroneand
+itislikelybesttopositionthedronerightabovethefailingsite. theothercells.SothedifficultyinoptimizingtheCIOisfindinga
+--- PAGE 5 ---
+5576 IEEETRANSACTIONSONVEHICULARTECHNOLOGY,VOL.73,NO.4,APRIL2024
+CIOvaluewhichreducestheloadofhighlyloadedcellswithout gainusingthefollowingformula
+overloadingthedronecellitself. (cid:2) (cid:3) (cid:4) (cid:5)
+ϕ 2
+Moreoverweshouldnotethatthealtitudeofthedronehasa G(ϕ)=−min 12 , A max +G d , (3)
+non-trivialimpactontheoptimalvalueoftheCIO.Thereason HPBWd
+forthisisthatthealtitudehasanimpactonthesignalstrength withA maxthemaximumattenuationandG dthemaximumgain
+experienced by the UEs. If the UEs have a good signal, they
+(bothindB).Weassumethatthedronehasatotaltransmitpower
+require fewer resources and therefore the drone can support ofPmax =0.5W.
+d
+moreUEs.However,asmentionedbefore,itisnotclearhowthe
+altitude affects the signal strengths and therefore, it is unclear
+B. PropagationCharacteristics
+howthealtitudeaffectstheoptimalCIOvalue.
+ForthelinkbetweenUEsandregularbasestationsweusethe
+path loss models provided in [23, Tables 7.4.1 and 7.4.2]. We
+V. MODELINGASSUMPTIONS
+determinethepathlossastheweightedaverageofthepathloss
+In order to evaluate the performance of the proposed drone
+for a line-of-sight (LoS) and a non-line-of-sight (NLoS) link,
+positioning algorithm, we will conduct extensive simulation
+withweightsgivenbytheprobabilityofhavingaLoSorNLoS
+experiments.Inthissectionwegiveanoverviewofthemodeling
+link.
+assumptionsusedinthesesimulations.
+Inviewofthehigheraltitudeanddifferentorientationofthe
+drone, we use a different path loss model for links between
+A. NetworkandAntennaAspects the UEs and the drone base station. For this model we need
+threestatisticalparameterstoreflectdifferentkindsofscattering
+To model the network, we consider a hexagonal layout of
+twelvethree-sectorizedsitescomprising12×3=36cells.We environments[25]:
+make a distinction between capacity-limited and coverage- α:Theratioofbuilt-uplandareatothetotallandarea.
+limitedscenarios,whichwecharacterizebytheassumptionof β:Thenumberofbuildingspersquarekilometer.
+anurbanandaruralenvironmentwithinter-sitedistances(ISDs) γ:Ascaleparameterdescribingthebuildings’heightsaccording
+of500mand3500m,respectively.Weuseawraparoundfeature toaRayleighdistribution.
+tomimicaninfinite-sizenetworkandavoidboundaryeffects.
+EachoftheseregularcellsisassignedaB =5MHzcarrier Using these parameters we can determine two other envi-
+inthe3.5GHzband,whereafractionκofthecarrierisrequired ronment parameters ξ and ψ according to [20]. Now we can
+formulatethepathlossbetweenthedroneandaUEasthefree
+for control signals. Furthermore, we assume that the drone is
+space path loss plus an excessive path loss component η or
+wirelessly backhauled on a frequency different from the fre- LoS
+η whichdependsonthetypeoflink(LoSorNLoS).Inline
+quency used to serve the UEs. Moreover, each regular cell is NLoS
+with[20]thepathlossisgivenby
+served by directional antennas located at an altitude of 25 m
+(cid:3) (cid:4)
+and35mfortheurbanandruraldeployments,respectively[23, 4πdf
+default values in Table 7.4.1-1]. For the antenna gains of the L d =20log 10 c +p LoS η LoS +(1−p LoS )η NLoS , (4)
+regular base stations we will use the model proposed in [24]
+wherecdenotesthespeedoflight,f thecarrierfrequencyand
+characterized by the horizontal and vertical half-power beam
+widthsHPBWh,v (indegrees),themaximumgainG r (indBi),
+dthe3D-distancebetweenthedroneandtheUE,and
+the front back ratio FBR (in dB) and the side lobe level SLL 1
+p =1−p = , (5)
+(in dB). Given these, we can express the total antenna gain as LoS NLoS 1+ξexp(−ψ[arctan(h/r)−ξ])
+G(ϕ,θ)=G h(ϕ)+G v(θ)where
+with h and r the height difference and the horizontal distance
+(cid:2) (cid:3) (cid:4) (cid:5)
+ϕ 2 betweentheUEandthedrone,respectively.
+G h(ϕ)=−min 12 , FBRh +G r , (1) Besidesthepathloss,thepropagationlossofasignalisalso
+HPBWh
+affected by shadow fading. To incorporate this, we determine
+(cid:2) (cid:3) (cid:4) (cid:5)
+spatially and site-to-site correlated shadow fading maps for
+θ−θ 2
+G v(θ)=max −12 etilt , SLLv , (2) each of the sites according to the model provided in [26]. For
+HPBWv
+thismodelweneedtospecifythreeparameters:thesite-to-site
+with ϕ denoting the horizontal angle relative to the azimuth correlationω,thedecorrelationdistanced decorr andthestandard
+direction, θ denoting the negative elevation angle relative to deviationoftheshadowfadingσ sh .
+the horizontal plane and θ denoting the electrical downtilt. Lastly,weimposeaminimumcouplinglossof70and80dB
+etilt
+fortheurbanandruralenvironment,respectively[27].
+Furthermore we assume that all regular base stations have a
+totaltransmitpowerofPmax =20W.
+r
+C. TrafficCharacteristics
+Fortheantennagainofthedronebasestationweassumethat
+the drone is equipped with an antenna consisting of a single WeassumethattheUEsthatwanttoinitiateanewcallarrive
+antenna element. We then use a rotated version of the model according to a spatially uniform Poisson process with rate λ.
+providedin[23,Table7.3-1],adaptingtheverticalcomponent In addition, we assume the emergence of a traffic hotspot that
+toensureacircularfootprint.Asaresultwemodeltheantenna is caused by a network disruption event. This hotspot area is
+--- PAGE 6 ---
+PIJNAPPELetal.:ONLINEPOSITIONINGOFADRONE-MOUNTEDBASESTATIONINEMERGENCYSCENARIOS 5577
+assumedtobeacirclewithradiusof100m,wherethearrival TABLEII
+rate of new calls is ρ times higher than elsewhere. The value SIMULATIONPARAMETERS
+ofρandthelocationofthetraffichotspotwillbevariedinthe
+differentsimulationscenarios.
+AllactiveUEsareassumedtobestatic(notmovingovertime)
+and the calls are assumed to have an exponentially distributed
+durationwithameanofτ seconds.Furthermoreweassumethat
+all calls require a minimum bit rate of R Mb/s for their entire
+duration.
+D. ResourceManagementAspects
+Upon call generation, we first determine the RSRP values
+to the different cells to check whether the associated UE has
+coverageornot.WhentheUEhascoverage,itisassignedtothe
+coveringcellwiththehighestvalueofRSRP+CIO.Thenthe
+admissioncontrolmechanismestimatesthefractionofdownlink
+resources that this new call requires such that it achieves its
+minimumrequiredbitrateR.Therequiredfractionoftheserving
+cell’sresourcesisestimatedbyR/((1−κ)Blog (1+SINR)),
+2
+where SINR denotes the current Signal-to-Interference-plus-
+Noise Ratio experienced by the new UE, and B and κ are
+recalled to denote the available bandwidth and the fraction
+of this bandwidth required for control signals, respectively.
+For the calculation of the SINR, we assume a thermal noise
+of −106.94 dBm and a noise figure of 8 dB. The admission
+E. SimulationParameters
+controlmechanismadmitsthenewcallwhensufficientresources
+To be able to use the described models, we need to select
+can be made available without violating the minimum bit rate
+suitable parameter values for our simulations. The selection is
+requirementofon-goingcalls.
+basedontheonesindicatedina3GPPtechnicalreport[23],a
+In line with the aim to optimize the CSR, we assume a
+commonlyknownreference[29],andanantennadatasheet[30].
+scheduling mechanism that allocates the available resources
+Anoverviewoftheselectedparametersforbothtypesofenvi-
+in a proportional fair way subject to the minimum bit rate
+ronmentsisshowninTableII.
+requirement. In the unfortunate case where it is not possible
+to provide all assigned UEs with their required minimum bit
+rate(whichcanbeaconsequenceofthedronemovementasthis VI. SENSITIVITYANALYSIS
+impactsthesignalstrengths),asmanyUEsaspossiblereceive
+InSectionIVwegavesomeintuitionfortheoptimalvalues
+the required amount of resources. In this case the remaining
+of the control variables (x, y, z and CIO). Since it is not clear
+resourcesaregiventotheunsatisfiedUEthatrequirestheleast
+how and to what extent these control parameters affect the
+amountofresources.
+CSRperformance,weconductedasimulation-basedsensitivity
+Although we do not consider user mobility, the dynamic
+analysisinvolvingastaticdrone.Inthissensitivityanalysiswe
+adjustmentsofthedronepositionleadtochangesinthepathloss
+considereachofthe44scenariosintroducedinSectionIII.For
+andantennagainvalues.Asaconsequence,thetotalamountof
+each scenario we consider 21 different drone positions in the
+requiredresourcesmayexceedtheavailablecapacity,inwhich
+horizontalplane(specifiedrelativetothelocationsofthehotspot
+case at least one UE no longer receives its minimum required andfailingsite),altitudesin{80,90,...,200}mandCIOvalues
+bitrate.AnotherconsequenceisthattheRSRPvalueschangeas in{−4,−3,...,3,4}dBforthedrone.Foreachcombinationof
+wellandmayresultinthedroppingofUEs.Thishappenswhen
+these parameters we determine the CSR averaged over twenty
+theRSRPoftheservingcellfallsbelowthecoveragethreshold
+simulationrunswithdistinctrandomseeds,eachcoveringatime
+of −120 dBm. Moreover, these changes in RSRP values can
+spanofonehour.
+leadtohandoverrequestswhentheRSRP+CIOofacandidate
+targetcellexceedstheRSRP+CIOofthecurrentlyservingcell
+A. 2D-Position
+byatleast3dB(assumedhysteresisvalue)foratleast200ms
+(assumed time to trigger). When such a handover request is AsmentionedinSectionIV-A,thelocationandintensityofthe
+submitted to the target cell, the admission control treats this hotspotimpacttheoptimalsettingsofthecontrolparameters.To
+request in the same way as it treats a new UE. Whenever a illustratetheimpactofthehotspotintensity,consideranurban
+handoverrequestisdenied,itisrepeatedafter50msprovided environment where the center of the hotspot is indicated with
+thattheconditionstriggeringthehandoverarestillsatisfied. theletterAinFig.1(a).Fig.2(a)and(b)showtheresultsofa
+--- PAGE 7 ---
+5578 IEEETRANSACTIONSONVEHICULARTECHNOLOGY,VOL.73,NO.4,APRIL2024
+Fig.2. CSRforlow(a)andhigh(b)trafficintensitiesinthehotspot,forvariouscombinationsofCIOvaluesandpositionsofthedroneonthelinebetweenthe
+failingsiteandthecenterofthehotspot.(a)Lowtrafficintensityinthehotspot.(b)Hightrafficintensityinthehotspot.
+Fig.3. CSRfortwodifferenthotspotlocations(AandB)withequaltrafficintensity,forvariouscombinationsofCIOvaluesandpositionsofthedroneonthe
+linebetweenthefailingsiteandthecenterofthehotspot.(a)ScenarioA,hotspotlocatedintheazimuthdirectionofanearbycell.(b)ScenarioB,hotspotlocated
+at60degreesfromtheazimuthdirectionofanearbycell.
+sensitivity analysis assessing the impact of the drone position vary the CIO value and fix the altitude of the drone at 120 m.
+and the CIO on the CSR for a scenario with a low and a high In line with the argumentation provided in Section IV-A, the
+trafficintensityinthehotspot,respectively.Inthesefigures,the figuresshowthattheoptimalpositionofthedroneiscloserto
+positionsofthedronearealongthelinefromthefailingsite(2D- thefailingsiteinscenarioAthaninscenarioB.
+distance0m)tothecenterofthehotspot(2D-distance200m)
+forafixedaltitudeof120m.Thefiguresindeedshowthatthe
+B. Altitude
+optimalposition(withrespecttotheCSR)ofthedroneisclose
+tothefailingsiteforalow-intensityhotspot,whileitiscloseto Let us first consider the RSRP values for UEs located at
+thecenterofthehotspotwhenthetrafficintensityinthehotspot various distances from the drone for different altitudes of the
+ishigh.Moreover,weseethattheoptimalvalueoftheCIOis droneasplottedinFig.4.Inthisfigurethecolorsindicatethe
+differentforthetwoscenarios,whichwewillfurtherdiscussin signalstrength,andthewhitecoloredareaindicatesUElocations
+SectionIV-C. withoutcoverage.Weseethatthecoverageareaincreaseswith
+In Section IV-A we also mentioned that optimal settings of the altitude. Apparently, for most UE locations the positive
+the control parameters depends on the location of the hotspot effects of increasing the altitude on the antenna gain and LoS
+relativetotheazimuthdirectionsoftheneareststilloperational probability for the path loss outweigh the negative impact on
+basestations.Toqualitativelyillustratethis,weplotinFig.3(a) thepathlosscausedbytheincreaseddistancebetweentheUE
+and(b)theCSRfordifferentlocationsofthedroneforscenarios and the drone. However, we note that in practice some legal
+A and B (as defined in Section IV-A), respectively. Again, we restrictions may be in place for the altitude at which a drone
+--- PAGE 8 ---
+PIJNAPPELetal.:ONLINEPOSITIONINGOFADRONE-MOUNTEDBASESTATIONINEMERGENCYSCENARIOS 5579
+Fig.4. RSRPvaluesforvariousaltitudesand2D-distancesinanurban(a)andrural(b)environment,respectively.(a)Urbanenvironment.(b)Ruralenvironment.
+is allowed to fly. In this study we will restrict the drone to to steer some of this traffic towards regular cells that still can
+fly at an altitude up to 120 m which is the maximum allowed supporttheseUEs.ThisillustratesthattheCIOhasanon-trivial
+altitudefordronesinthe‘open’category[28],meaningthatno impactonblockingandhencealsoontheCSR.However,inour
+specialpermitisrequired.However,itmightbepossibletoavoid simulation study we found that in 38 out of 44 scenarios the
+thisrestrictionandpotentiallyachievebetterperformancewhen CIO optimizing the CSR lies in the interval from −2 to 2 dB.
+consideringdronesinthe‘specific’or‘certified’category. Moreover, the scenarios where this is not the case correspond
+AswecanseeinFig.4,increasingthealtitudeofthedrone to an ISD of 500 m (urban environment) and an eight times
+deteriorates the RSRP for UEs close to the main beam of the higher traffic intensity in the hotspot than elsewhere. We also
+drone (2D-distance 0 m). This is caused by the fact that the seehoweverthattheCSRseemsnottoosensitivewithrespect
+pathlossdeterioratesmorethantheantennagainimproves.On totheCIO,thereforeitappearstobepossibletofixtheCIOand
+theotherhand,wealsoseethatforUEsfurtherawayfromthe stillattainaclose-to-optimalCSR.
+drone an increased drone altitude enhances the RSRP, as for
+these UEs the positive effects of the increased altitude on the D. SelectionoftheAltitudeandCIO
+pathloss(duetoanincreasedLoSprobability)andantennagain
+AsmentionedinSectionsVI-BandVI-C,theoptimalaltitude
+outweigh the negative effect of the increased distance on the
+andCIOwereinmostcases120morhigherandbetween−2and
+path loss. Although from a coverage perspective it is best to
+2dB,respectively.Motivatedbythisobservation,weinvestigate
+position the drone at an altitude of 120 m given the assumed
+whetherthesacrificeintermsofareducedCSRisacceptablein
+legalrestriction,itisnotclearwhetherthisisalsoagoodchoice
+casewechoosetosimplifytheoptimizationchallengebyfixing
+fromaCSRpointofview,whereweshouldkeepinmindthat
+thealtitudeto120mandtheCIOto0dB.Thecorresponding
+thestilloperationalregularbasestationsalsoprovidecoverage
+simulation results, shown in Fig. 5, reveal that the pairwise
+to the area previously covered by the failing site. However, in
+difference between the CSR values is small, with an average
+37outof44scenariosinoursimulationstudy,weobservedthat
+difference of approximately 0.004 and a maximum difference
+theoptimalaltitudefromaCSRviewpointwas120morhigher.
+less than 0.012. Based on this insight, we choose to fix the
+In Section VI-D we will further investigate the impact of the
+altitude and the CIO to the given settings in the remainder of
+altitudeontheCSR.
+thispaper,andconcentrateonthedynamicoptimizationofthe
+drone’s2D-position.
+C. CellIndividualOffset
+ToillustratetheimpactoftheCIOweconsidertwoscenarios VII. ALGORITHMS
+wherethehotspotislocatedatthesameposition(200mfrom
+In this section we specify the proposed data-driven drone
+the failing site),but has a different traffic intensity (ρ=2 and
+positioning algorithm. For this we will elaborate on the al-
+ρ=8).InFig.2(a)and(b)weplottheCSRforvariouslocations
+gorithmic challenges, and describe the general framework of
+of the drone on the line from the failing site to the center of
+theproposeddata-drivendronepositioningalgorithmandused
+the hotspot but at a fixed altitude of 120 m, and for various
+controlmetrics(measurementdata).
+values of the CIO. In these figures we observe that the CIO
+valueoptimizingtheCSRislowerwhenthetrafficintensityin
+A. AlgorithmicChallenges
+the hotspot is higher. A reason for this is that when the traffic
+intensity increases, the drone will at some point no longer be Although we reduce the complexity from four optimization
+able to support all UEs in its close proximity, and thus needs variables to only two by fixing the altitude and the CIO (as
+--- PAGE 9 ---
+5580 IEEETRANSACTIONSONVEHICULARTECHNOLOGY,VOL.73,NO.4,APRIL2024
+Fig.5. ComparisonofoptimalCSRvaluesfordifferentscenarios,whenthealtitudeandCIOareoptimized,orfixedat120mand0dB,respectively.(a)Urban
+environment.(b)Ruralenvironment.
+mentioned in Section VI-D), finding the optimal horizontal
+B. GeneralFramework
+dronepositionstillconstitutesasignificantchallenge.Moreover,
+because the optimal position of the drone depends on many Weconsiderameasurement-basedalgorithmthatadjuststhe
+unknown factors like the location and intensity of the hotspot, locationofthedrone(xandycoordinates)inaniterativemanner,
+weneedanonlinealgorithmthatcanfindaneffectiveposition where only one coordinate is adjusted at a time. For these
+forthedronewithclose-to-optimalCSR,inafairlyshortamount adjustmentswestartbymeasuringaCMthatcanbemeasured
+oftime(orderofminutes). accuratelyinarelativelyshortamountoftime(whichweassume
+Since we use the CSR as the main performance measure, it to be 200 ms). The measurement is followed by a ‘decision
+seems natural to use this metric also to drive the adjustments point’,atwhichthealgorithmtakestheactiontomoveonemeter
+of the drone position. However, the CSR cannot be measured inthexorydirectionwithanassumedspeedof24km/h.When
+accuratelyinshortperiodsoftimeforseveralreasons.Firstof thedronehasmovedtothenewposition,wewaitsometime,the
+all, the drone and other cells are unaware of UEs that do not so-called‘timetotrigger’whichisassumedtobe200mstoallow
+have coverage. Secondly, a large number of calls needs to be handoverstooccurasapossibleconsequenceoftheaction.After
+consideredtohaveanaccuratemeasurementoftheCSR.Hence, thatanewmeasurementperiodstartsfollowedbyanewdecision
+theCSRisill-suitedtodrivetheonlineadjustmentsofthedrone point.Atthisdecisionpointthealgorithmneedstoselectthenext
+position.Thus,weneedanotherso-calledcontrolmetric(CM) actionbasedonthepreviousactionsandthecurrentandprevious
+todrivethealgorithm,whoseoptimizationideallyleadstothe CM.IftheCMhasimproved,thenitisassumedthattheprevious
+same drone location that optimizes the CSR itself. Therefore actionwasagoodoneandthesameactionisrepeateduntilthe
+themainnovelcomponentofthealgorithmthatweproposeisthe CM starts to degrade. In case the CM degraded, the previous
+constructionofthisCM,whichshouldbeaccuratelymeasurable action is assumed to be a bad one, and the algorithm starts
+in relatively short amounts of time. In Section VII-C we will adjustingthegivencoordinate(xory)intheoppositedirection
+proposeseveralchoicesfortheCMwhichwillbeevaluatedin untiltheCMdegradesagain.Atthatpoint,westartoptimizing
+SectionVIII-A,whereeachCMisusedincombinationwiththe the other coordinate. An overview of the algorithm is shown
+generalalgorithmicframeworkpresentedinthenextsection. inFig.6.Althoughthe‘flowchartlogic’ofthealgorithmitself
+--- PAGE 10 ---
+PIJNAPPELetal.:ONLINEPOSITIONINGOFADRONE-MOUNTEDBASESTATIONINEMERGENCYSCENARIOS 5581
+for the CMs. The idea behind this is that minimizing the cell
+load or, alternatively, the load per UE leads to more available
+resources,henceareductionofthenumberofblockedUEsand
+thereforeanimprovementoftheCSR.
+Akeyquestionisforwhichcellweconsiderthecellloador
+loadperUE.Anobviouschoiceseemstobetoconsiderthedrone
+cell,butitcouldalsobebeneficialtoreducetheload(perUE)
+inthemosthighlyloadedregularcelladjacenttothecellsofthe
+failingsite.Basedonthis,wechoosetoconsiderthefollowing
+CMs:
+CM1: Theloadofthedronecell.
+CM2: Theloadofthemosthighlyloadedregularcell.
+CM3: The load of the drone cell plus the load of the most
+highlyloadedregularcell.
+CM4: TheaverageloadperUEofthedronecell.
+CM5: The average load per UE of the most highly loaded
+regularcell.
+CM6: TheaverageloadperUEofthedronecellandthemost
+highlyloadedregularcell(eachcellhasequalweight).
+CM7: TheaverageloadperUEofthedronecellandthemost
+highly loaded regular cell (each cell has weight equal
+tothenumberofassignedUEs).
+In the description above, a regular cell is considered to be
+one of the cells adjacent to the cells of the failing site. In
+an operational network, the values of these CMs are readily
+collectedbyacontrolnode,whichcanthendeterminethenext
+Fig.6. Flowchartofthealgorithm.
+actionandsignalthistothedrone.
+isfairlystraightforward,theinnovativeaspectofthealgorithm VIII. SIMULATIONRESULTS
+liesintheuseofacarefullydefinedCMtodrivetheadjustments
+Using the models described in Section V, we evaluate the
+of the drone with the goal to optimize the CSR. Note that it
+performance of our algorithm with the CMs described in
+is unclear what CM would best achieve this goal as the CSR
+Section VII. In particular, the resulting CSR values will be
+cannotbeusedtodrivethedroneadjustments.Furthermore,as
+consideredforthe44scenarioswithastatichotspotasdescribed
+theconstellationofcallschangesovertime,theoptimalposition
+inSectionIII.Moreover,weconsidertheconvergencetimeofthe
+ofthedronechangesovertimeaswell.Hence,anactionthatis
+proposedalgorithmusingthebestperformingCM,andevaluate
+consideredgoodattimetmaybeconsideredbadattimet+Δt,
+thetrackingcapabilitiesofthedroneincaseofamovinghotspot.
+whichimpliesthatthedroneneedstocontinuouslyoptimizeits
+positionbasedontheCM.
+A. StaticHotspots
+Wewouldliketoemphasizethatthedescribedalgorithmonly
+Let us first consider the performance of the proposed algo-
+relies on practically measurable metrics and does not require
+rithmwitheachofthechosenCMs,forthescenarioswithstatic
+any pre-deployment learning or knowledge of the propagation
+hotspotsdescribedinSectionIII.Besidesthescenariowithout
+environment,antennafeatures,locationofthehotspotortraffic
+ahotspot,weassumethemultiplicationfactorfortheintensity
+density.Asaresult,thealgorithmcanbeusedinawiderange
+of initiated calls in the hotspot ρ to be 2, 4 or 8 for the urban
+ofscenarios.
+environment,and10,25and50fortheruralenvironment.Inall
+scenarios,thestartingpositionofthedroneisabovethefailing
+C. ControlMetrics
+site and that the location of the center of the hotspot is static
+Asmentioned,theCMisatthecoreofthealgorithmandhasa (does not change). To get accurate results, we determine the
+significantimpactontheperformanceofthealgorithmandthus average CSR over 25 simulation runs where for each run the
+theCSR.Hence,itisimportanttoselectasuitableCM,which CSRismeasuredoveratimeperiodoffourhoursstartingwhen
+canbeeasilyobtainedinpractice.Anexampleofametricthatis thedronehasbeenactiveforsometime.
+easytomeasureinpracticerelatestotheloadofacell,whichwe TableIIIshowstheperformanceofthethreebenchmarks(no
+definetobethefractionofresourcesthatacellneedstoprovide drone, a static drone above the failing site and the algorithm
+allitsassignedUEstheirminimumrequiredbitrate.Theseload from[22])andtheproposedalgorithmusingthedifferentCMsas
+measurementsindirectlyprovideanindicationforthedegreeof listedinSectionVII-C.Asexpected,thesettingwithoutadrone
+blocking and thus the CSR, and therefore formanatural basis has the worst CSR performance for most scenarios. However,
+--- PAGE 11 ---
+5582 IEEETRANSACTIONSONVEHICULARTECHNOLOGY,VOL.73,NO.4,APRIL2024
+TABLEIII urbansettingandρ=10intheruralsetting),butalsowhenthe
+CSROFTHEBENCHMARKSANDPROPOSEDALGORITHMWITH
+centerofthehotspotisrelativelyclosetothefailingsite.
+DIFFERENTCMS
+Although the algorithm in [22] can make adjustments with
+respecttothealtitude(butalsohasamaximumaltitudeof120m)
+and CIO, the proposed algorithm shows similar performance
+withCM1and4.However,theproposedalgorithmhasinmost
+scenarios a higher CSR with CM 3, 6 and 7 which is thanks
+tothefactthattheseconsiderboththedronecellandthemost
+highlyloadedregularcell.Asitdependsonthescenariowhich
+ofthethreeCMsperformsbest,wewillselecttheCMwiththe
+bestCSRoverallscenarios,whichturnsouttobeCM7.
+Asmentionedearlier,theperformanceimprovementthatcan
+berealizedbythedeploymentofadronebasestationdepends
+on the scenario. The proposed algorithm using CM 7 has at
+leastasimilarperformancetothedeploymentofadroneabove
+the failing site, but in some scenarios the proposed algorithm
+provides a significant performance improvement over such a
+static deployment. Examples of these scenarios are scenarios
+DU-100-120-4, DU-100-120-8, DU-200-90-4, DU-200-90-8,
+DU-200-120-4 and DU-200-120-8. In these cases we see im-
+provements in CSR of more than 0.025, 0.035, 0.018, 0.030,
+0.031and0.055,respectively.Althoughthesevaluesmayseem
+toindicaterathermodestimprovements,theyimplyareduction
+in the fraction of failed calls with more than 18%, 17%, 11%,
+12%, 18% and 21%, respectively. This means for example for
+scenarioDU-200-120-8thatmorethanoneoutoffivecallsthat
+would be unsuccessful when deploying a static drone at the
+failing site would be successful when the drone would adjust
+its position using the proposed algorithm. Hence in several
+scenarios, the algorithm is able to dynamically find a better
+position for the drone which significantly reduces the fraction
+offailedcalls.
+InFig.7wecomparetheproposedalgorithmusingCM7with
+thethreebenchmarksettings(nodrone,astaticdroneabovethe
+failingsiteandadronethatadjustsitsx,y,zandCIOusingthe
+algorithmproposedin[22]).Forthesesettingstheaveragewidth
+ofthetwo-sided95%confidenceintervalsislessthan0.004,i.e.
+around 0.45% of the indicated value. Hence we see that the
+proposed algorithm significantly outperforms all benchmarks
+inscenariosconsideringadenseurbanenvironmentwherethe
+hotspotisnotlocatedatthefailingsiteandhasaloadthatisfour
+oreighttimeshigherthanelsewhere.Forallotherscenarios,the
+proposed algorithm and the best-performing benchmark have
+overlapping confidence intervals, which indicates that in these
+CM2and5haveapoorperformance,whichiscausedbythefact scenariostheproposedalgorithmhasaperformancesimilarto
+thatthedronetendstomoveinthewrongdirection.Toexplain thebest-performingbenchmark.
+this,noticethatonlytheloadorloadperUEofthemosthighly
+loaded regular cell is considered. Moving the drone towards
+B. ConvergenceTime
+this cell implies additional interference for the UEs connected
+to this regular cell, which then need a larger fraction of the Inanemergencyscenarioitisofutmostimportancethatthe
+availableresources.HencetheCM(loadorloadperUE)inthis droneisabletofindagoodpositioninafairlyshortamountof
+cellincreaseswhilewearetryingtominimizetheCM,meaning time.Inordertoinvestigatetheconvergencetime(thetimethat
+thatitisbetterforthedronetomoveawayfromthiscell. thedroneneedstofindagoodposition),weplottheaverageCSR
+We see that the static drone above the failing site performs of25simulationrunsmeasuredoveramovingtimewindowof5
+quitewellinanumberofscenarios.Thescenarioswherethisis minutesovertime.Fortheurbanenvironmentwewillconsider
+the case have in common that there is no hotspot or a hotspot thescenarioswherethehotspotislocatedatpositionsAandB
+with a relatively low intensity of initiated calls (ρ=2 in the inFig.1(a),aswellasahotspotwithitscenteratthefailedsite.
+--- PAGE 12 ---
+PIJNAPPELetal.:ONLINEPOSITIONINGOFADRONE-MOUNTEDBASESTATIONINEMERGENCYSCENARIOS 5583
+Fig.7. ComparisonofCSRcorrespondingtotheproposedalgorithmusingCM7withthethreebenchmarks.(a)Urbanenvironment.(b)Ruralenvironment.
+Forthesehotspotlocationswewillconsiderthetrafficintensity these scenarios a good position for the drone is close to the
+in the hotspot to be twice or eight times as high as elsewhere failingsite(wherethedronestartsattime0).However,forthe
+i.e. ρ∈{2,8}. Similarly, in the rural setting we will consider scenarios where the hotspot is located at location A or B with
+thelocationsCandDinFig.1(b)aswellasthelocationofthe ρ=8,weseethatittakesapproximately1400secondstoreach
+failingsiteasthecenterofthehotspot,butnowwewillconsider anequilibrium.Furthermore,weseeinFig.8(a)thatthesettings
+thetrafficintensityinthehotspottobe10or50timesashighas withρ=8havelowerCSRcomparedtothesettingswithρ=2.
+elsewherei.e.ρ∈{10,50}. Toexplainthis,wenotethattheurbanenvironmentwithanISD
+Before we discuss Fig. 8, we notice that the CSR value at of500mcorrespondstoacapacity-limitedscenario.Hencefor
+timetismeasuredoverthetimewindowfromtimet−300tot. higher values of ρ, there is more traffic that cannot be served,
+Furthermore,time0indicatesthepointintimewherethedrone resultinginalowerCSR.
+becomes active.Therefore,itislogicalthattheCSRincreases When we consider the rural environment, Fig. 8(b) shows
+shortlyafterthis,asthedroneisthenabletoadmitallnewusers thatforallscenariostheCSRfluctuatesaroundanequilibrium
+andisgraduallyusingmoreofitscapacity. valueafter5minutes.Theexplanationforthisisthattherural
+For the scenario with the hotspot at the failing site and for environment corresponds to a coverage-limited setting. This
+thescenarioswiththehotspotatlocationsAandBwithρ=2, means that a failing site results in areas without coverage, but
+Fig.8(a)showsthattheCSRisfluctuatingaroundanequilibrium alsothatUEsinareasaroundthesecoverageholeshaveabad
+after only 5 minutes. This can be explained by the fact that in signalstrength,andthuswhenadmittedrequirelargeamounts
+--- PAGE 13 ---
+5584 IEEETRANSACTIONSONVEHICULARTECHNOLOGY,VOL.73,NO.4,APRIL2024
+Fig.8. CSRovertimemeasuredover5-minutetimewindows.(a)Urbanenvironment.(b)Ruralenvironment.
+of the available resources. As we see in Fig. 1(b), these areas
+without coverage, and thus also areas where UEs need a large
+fraction of resources, are more prominent close to the failing
+site.Therefore,adronepositionedabovethefailingsitealready
+improvestheCSRsignificantly,andturnsouttoleavelittleroom
+forfurtherimprovements.
+AlthoughthepresentedresultsareforCM7,theotherCMs
+except 2 and 5 (which had bad performance as indicated in
+TableIII)showsimilarbehavior.
+C. MovingHotspots
+Fig.9. Illustrationofthedifferentmovementpatterns(cyan,greenandblue)
+So far we have only considered static hotspots. However in ofthehotspot,inrelationtothefailingsiteandstilloperationalsites.
+anemergencysituationhotspotsmaymove,forexamplewhena
+crowdtriestogetawayfromtheimpactedarea.Inthesekindsof
+situations,itisimportantforouralgorithmtokeepadjustingthe
+dronepositiontoserveasmanyUEsaspossible.Aswehaveseen abovethefailingsiteandweseethatthedroneisabletofindand
+in Section VIII-B, the position of the drone is most important follow the movement of the hotspot. However, we also notice
+intheurbansetting,whenthereisahightrafficintensityinthe thatthedronealwaysslightlylagsbehindthehotspot,whichis
+hotspot. Therefore, we will focus on the urban environment, becausethedronehastofollowthehotspotanddoesinnoway
+wherewehaveahotspotmovingi)counterclockwiseinacircle predict the path of the hotspot. Furthermore, Figs. 11 and 12
+aroundthefailingsite,ii)backandforthinastraightlinethrough show that the y-coordinate does not follow the hotspot to the
+the failing site at two different angles relative to the azimuth pointfurthestawayfromthefailingsite.Thiscanbeexplained
+directions of the failing site, where at the end of the line the bythefactthatevenforahotspotwithahightrafficintensity,it
+hotspot stops for a short period before it starts moving in the maybebettertomoveintothedirectionofthehotspot,butnot
+opposite direction. These movement patterns are illustrated in rightaboveit,aswehavealsoseeninFig.2(b).
+Fig. 9. For the hotspot we assumed a speed of 1 km/h. Note Furthermore,weobserveinFigs.10–12thatthedronefollows
+that these movement patterns are not necessarily realistic, but slightly different trajectories for the various simulation runs,
+servetotesttheresponsivenessandtrackingcapabilitiesofthe which is caused by the different user dynamics in each of
+algorithm. the simulation runs. Moreover, as in all simulation runs (of
+To illustrate that the drone is able to follow the hotspot, the same scenario) the drone follows a similar trajectory, we
+Figs. 10–12 plot the distance to the failing site along the x concludethattheproposedalgorithmisabletoadapttochanging
+andy-axisforthethreemovementpatternswhenρ=8forfive environments.
+simulation runs. We expect that the drone follows the hotspot Similarly to the analysis of the convergence time, the pre-
+closely as it has a high traffic intensity, meaning that the CSR sentedresultsareforCM7,withtheotherCMsexcept2and5
+benefitswhenthedroneservestheusersinthehotspot.Inthese (whichhadbadperformanceasindicatedinTableIII)showing
+figures,time0indicatesthemomentthatthedroneisactivated similarbehavior.
+--- PAGE 14 ---
+PIJNAPPELetal.:ONLINEPOSITIONINGOFADRONE-MOUNTEDBASESTATIONINEMERGENCYSCENARIOS 5585
+Fig.10. Circularmovementofhotspot(cyancircleinFig.9).(a)Distancetofailingsitealongx-axis.(b)Distancetofailingsitealongy-axis.
+Fig.11. Linemovementofhotspotoffazimuthdirection(bluelineinFig.9).(a)Distancetofailingsitealongx-axis.(b)Distancetofailingsitealongy-axis.
+Fig.12. Linemovementofhotspotalongazimuthdirection(greenlineinFig.9).(a)Distancetofailingsitealongx-axis.(b)Distancetofailingsitealongy-axis.
+--- PAGE 15 ---
+5586 IEEETRANSACTIONSONVEHICULARTECHNOLOGY,VOL.73,NO.4,APRIL2024
+IX. CONCLUSION [11] R.dePaulaParisotto,P.V.Klaine,J.P.B.Nadas,R.D.Souza,G.Brante,
+andM.A.Imran,“Dronebasestationpositioningandpowerallocation
+Inthispaperwehaveproposedandevaluatedadata-drivenal- using reinforcement learning,” in Proc. IEEE 16th Int. Symp. Wireless
+gorithmforsteeringadronebasestationinordertooptimizethe Commun.Syst.,2019pp.213–217.
+[12] P.V.Klaine,J.P.B.Nadas,R.D.Souza,andM.A.Imran,“Distributed
+CSRinascenariowithafailingsiteandemergenceofahotspot.
+drone base station positioning for emergency cellular networks using
+Toadjustthedroneposition,ouralgorithmleveragesreal-time reinforcementlearning,”Cogn.Comput.,vol.10,pp.790–804,2018.
+measurabledatainanonlinemanner,anddoesnotrequirepre- [13] D. Prado, S. Inca, D. Martín-Sacristán, and J. F. Monserrat, “Com-
+parison of optimization methods for aerial base station placement
+deploymenttrainingorknowledgeofthepropagationenviron-
+with users mobility,” in Proc. IEEE Eur. Conf. Netw. Commun., 2019,
+ment,antennafeatures,locationofthehotspotortrafficdensity. pp.485–489.
+OuralgorithmsignificantlyimprovestheCSRcomparedtoa [14] H.Ahmadi,K.Katzis,andM.Z.Shakir,“Anovelairborneself-organising
+architecturefor5Gnetworks,”inProc.IEEE86thVeh.Technol.Conf.,
+settingwithoutadrone,butalsowhencomparedtothealgorithm
+2017,pp.1–5.
+of [22] even though our algorithm only adjusts the x and y- [15] S.ZhangandN.Ansari,“3Ddronebasestationplacementandresource
+coordinatesandnotthealtitudeoracellselectionbiasasthese allocationwithFSO-basedbackhaulinhotspots,”IEEETrans.Veh.Tech-
+nol.,vol.69,no.3,pp.3322–3329,Mar.2020.
+turned out to have a small impact. Moreover, our algorithm is
+[16] D. Wu, X. Sun, and N. Ansari, “An FSO-based drone assisted mobile
+abletofindanear-optimalpositionwithinafairlyshortamount accessnetworkforemergencycommunications,”IEEETrans.Netw.Sci.
+oftime.Inadditionwedemonstratedthatouralgorithmhasthe Eng.,vol.7,no.3,pp.1597–1606,Jul.–Sep.2020.
+[17] E. T. Michailidis, N. Nomikos, P. S. Bithas, D. Vouyioukas, and A.
+abilitytotracktheoptimalpositionincaseofamovinghotspot.
+G.Kanatas,“Optimal3-Daerialrelayplacementformulti-userMIMO
+Infutureresearchitwouldbeinterestingtoinvestigatesettings communications,” IEEE Trans. Aerosp. Electron. Syst., vol. 55, no. 6,
+withabroaderrangeoftraffictypes,wherethegenericchoice pp.3218–3229,Dec.2019.
+[18] M. A. Kishk, A. Bader, and M.-S. Alouini, “On the 3-D placement
+ofthecontrolmetricmightprovebeneficial.Furthertopicslike
+ofairbornebasestationsusingtetheredUAVs,”IEEETrans.Commun.,
+deploymentalgorithmsformultipledronesinthisscenarioorthe vol.68,no.8,pp.5202–5215,Aug.2020.
+use of cell outage compensation would be interesting subjects [19] T.R.Pijnappel,J.L.vandenBerg,S.C.Borst,andR.Litjens,“Drone-
+assistedcellularnetworks:Optimalpositioningandloadmanagement,”in
+forfutureresearchaswell.
+Proc.IEEE93rdVeh.Technol.Conf.,2021,pp.1–6.
+[20] A. Al-Hourani, S. Kandeepan, and S. Lardner, “Optimal LAP altitude
+REFERENCES for maximum coverage,” IEEE Wireless Commun. Lett., vol. 3, no. 6,
+pp.569–572,Dec.2014.
+[1] 5G!Drones,EUH2020project,2019–2022,www.5gdrones.eu [21] C. Boucetta, A. Dridi, H. Moungla, H. Afifi, and A. E. Kamal,
+[2] M. Mozaffari, W. Saad, M. Bennis, Y.-H. Nam, and M. Debbah, “A “Optimizing drone deployment for cellular communication coverage
+tutorial on UAVs for wireless networks: Applications, challenges, and during crowded event,” in Proc. IEEE Mil. Commun. Conf., 2019,
+openproblems,”IEEECommun.Surv.Tut.,vol.21,no.3,pp.2334–2360, pp.622–627.
+Thirdquarter2019. [22] T. R. Pijnappel, J. L. van den Berg, S. C. Borst, and R. Litjens,
+[3] M. Mozaffari, A. Taleb Zadeh Kasgari, W. Saad, M. Bennis, and M. “Data-drivenoptimizationofdrone-assistedcellularnetworks,”inProc.
+Debbah,“Beyond5GwithUAVs:Foundationsofa3Dwirelesscellular IEEE17thInt.Conf.WirelessMobileComput.,Netw.Commun.,2021,
+network,”IEEETrans.WirelessCommun.,vol.18,no.1,pp.357–372, pp.233–240.
+Jan.2019. [23] 3rdGenerationPartnershipProject,“Studyonchannelmodelforfrequen-
+[4] T.Akram,M.Awais,R.Naqvi,A.Ahmed,andM.Naeem,“Multicriteria ciesfrom0.5to100GHz,”3GPP,SophiaAntipolis,France,Tech.Rep.
+UAVbasestations placementfordisastermanagement,” IEEESyst. J., 38.901v16.1.0,2019.
+vol.14,no.3,pp.3475–3482,Sep.2020. [24] F. Gunnarsson et al., “Downtilted base station antennas - a simulation
+[5] F.Al-Turjman,J.P.Lemayian,S.Alturjman,andL.Mostarda,“Enhanced model proposal and impact on HSPA and LTE performance,” in Proc.
+deployment strategy for the 5G drone-BS using artificial intelligence,” IEEE68thVeh.Technol.Conf.-Fall,2008,pp.1–5.
+IEEEAccess,vol.7,pp.5999–76008,2019. [25] “Propagation data and prediction methods for the design of terrestrial
+[6] E.Kalantari,H.Yanikomeroglu,andA.Yongacoglu,“Onthenumberand broadbandmillimetricradioaccesssystemsoperatinginafrequencyrange
+3D placement of drone base stations in wireless cellular networks,” in ofabout20–50GHz,”Rec.P1410-2,InternationalTelecommunications
+Proc.IEEE84thVeh.Technol.Conf.,2016,pp.1–6. Union,Geneva,Switzerland,2003.
+[7] W. Shi et al., “Multiple drone-cell deployment analyses and optimiza- [26] R. Fraile, J. F. Monserrat, J. Gozálvez, and N. Cardona, “Mo-
+tion in drone assisted radio access networks,” IEEE Access, vol. 6, bile radio bi-dimensional large-scale fading modelling with site-to-
+pp.12518–12529,2018. site cross-correlation,” Eur. Trans. Telecommun., vol. 19, pp.101–106,
+[8] F. Pasandideh, T. D. e Silva, A. A. S. da Silva, and E. P. de Freitas, 2008.
+“Topology management for flying ad hoc networks based on particle [27] 3rdGenerationPartnershipProject,“LTE;Evolveduniversalterrestrial
+swarm optimization and software-defined networking,” Wireless Netw., radioaccess(E-UTRA);radiofrequency(RF)systemscenario,”3GPP,
+vol.28,pp.1–16,2022. SophiaAntipolis,France,Tech.Rep.36.942,v16.0.0,2020.
+[9] X. Li, “Deployment ofdronebase stations forcellular communication [28] The European Commission, Official journal of the European Union,
+withoutaprioriuserdistributioninformation,”inProc.IEEE37thChin. “L152,”vol.62,Jun.11,2019.[Online].Available:https://eur-lex.europa.
+ControlConf.,2018,pp.7274–7281. eu/legal-content/EN/TXT/HTML/?uri=OJ:L:2019:152:FULL
+[10] R. Ghanavi, E. Kalantari, M. Sabbaghian, H. Yanikomeroglu, and A. [29] A. Al-Hourani, S. Kandeepan, and A. Jamalipour, “Modeling air-to-
+Yongacoglu,“Efficient3Daerialbasestationplacementconsideringusers groundpathloss forlowaltitude platforms inurbanenvironments,”in
+mobilitybyreinforcementlearning,”inProc.IEEEWireless.Commun. Proc.IEEEGlob.Commun.Conf.,2014,pp.2898–2904.
+Netw.Conf.,2018,pp.1–6. [30] Ericsson,“Ericssonantennasystemcatalog2021,”2021,pp.487–494.
