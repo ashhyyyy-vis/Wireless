@@ -140,22 +140,41 @@ def run_all_scenarios(
             )
             all_results.append({"scenario": scenario, **res})
 
-    # Save CSV
-    with open(out_file, "w", newline="") as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=["scenario", "cm", "mean_csr", "std_csr"]
-        )
-        writer.writeheader()
+    # Save CSV (append mode) - one row per scenario
+    import os
+    os.makedirs(os.path.dirname(out_file), exist_ok=True)
+    
+    # Check if file exists to decide whether to write header
+    file_exists = os.path.exists(out_file)
+    
+    # Group results by scenario
+    scenario_results = {}
+    for r in all_results:
+        scenario = r["scenario"]
+        if scenario not in scenario_results:
+            scenario_results[scenario] = {}
+        scenario_results[scenario][r["cm"]] = r["mean_csr"]
+    
+    # Prepare CSV headers
+    headers = ["scenario", "no_drone", "static_drone"] + [f"CM{i}" for i in range(1, 8)]
+    
+    with open(out_file, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=headers)
+        
+        # Write header only if file is new
+        if not file_exists:
+            writer.writeheader()
 
-        for r in all_results:
-            writer.writerow({
-                "scenario": r["scenario"],
-                "cm": r["cm"],
-                "mean_csr": f"{r['mean_csr']:.6f}",
-                "std_csr": f"{r['std_csr']:.6f}",
-            })
+        # Write one row per scenario
+        for scenario, metrics in scenario_results.items():
+            row = {"scenario": scenario}
+            
+            # Add all metrics to row
+            for metric_name in headers[1:]:  # Skip scenario column
+                row[metric_name] = f"{metrics.get(metric_name, 0.0):.6f}"
+            
+            writer.writerow(row)
 
-    print(f"\nSaved -> {out_file}")
+    print(f"\nAppended -> {out_file}")
 
     return all_results
