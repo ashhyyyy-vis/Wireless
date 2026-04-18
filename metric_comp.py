@@ -18,7 +18,7 @@ PHASE1 = 30
 PHASE3 = 2 * 60
 TOTAL  = PHASE1 + PHASE3
 
-LAMBDA = 11
+LAMBDA = 8
 N_RUNS = 5
 NUM_WORKERS = max(1, cpu_count() - 1)
 

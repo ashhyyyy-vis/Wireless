@@ -293,7 +293,7 @@ def run_one(
                 
                 # Process handovers every N algorithm events (reliable timing)
                 algo_event_counter += 1
-                if algo_event_counter % 25 == 0:  # Every 25 events = every 10 seconds
+                if algo_event_counter % 4 == 0:  # Every 25 events = every 10 seconds
                     handover.process_handovers(sim_time, active_ues, radio, admission)
                 push(sim_time + CONTROL_INTERVAL_S, EV_ALGORITHM, None)
 
