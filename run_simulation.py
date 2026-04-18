@@ -261,7 +261,7 @@ def run_one(
                         push(ue.departure_time, EV_DEPARTURE, ue.ue_id)
 
             # Process handovers for all active UEs
-            handover.process_handovers(sim_time, active_ues, radio, admission)
+            #handover.process_handovers(sim_time, active_ues, radio, admission)
 
             # Schedule next arrival
             push(traffic.next_arrival_time(sim_time), EV_ARRIVAL, None)
@@ -277,7 +277,6 @@ def run_one(
         elif ev_type == EV_ALGORITHM:
             if drone.active:
                 # Process handovers periodically
-                handover.process_handovers(sim_time, active_ues, radio, admission)
                 
                 if mode == "algorithm" and algo is not None:
                     state = algo.step_algorithm()
@@ -288,6 +287,10 @@ def run_one(
                     ))
                 # Update loads for CM computation
                 admission.update_loads()
+                
+                # Process handovers periodically
+                handover.process_handovers(sim_time, active_ues, radio, admission)
+                
                 push(sim_time + CONTROL_INTERVAL_S, EV_ALGORITHM, None)
 
     # ---------------------------------------------------------------------------
