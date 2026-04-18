@@ -127,6 +127,9 @@ def run_one(
 
     # Handover pending: ue_id -> (candidate_cell_id, trigger_time)
     ho_pending: Dict[int, Tuple[int, float]] = {}
+    
+    # Algorithm event counter for handover frequency control
+    algo_event_counter = 0
 
     # ---------------------------------------------------------------------------
     # Event queue (min-heap): (time, event_type, payload)
@@ -288,9 +291,10 @@ def run_one(
                 # Update loads for CM computation
                 admission.update_loads()
                 
-                # Process handovers periodically
-                handover.process_handovers(sim_time, active_ues, radio, admission)
-                
+                # Process handovers every N algorithm events (reliable timing)
+                algo_event_counter += 1
+                if algo_event_counter % 25 == 0:  # Every 25 events = every 10 seconds
+                    handover.process_handovers(sim_time, active_ues, radio, admission)
                 push(sim_time + CONTROL_INTERVAL_S, EV_ALGORITHM, None)
 
     # ---------------------------------------------------------------------------
