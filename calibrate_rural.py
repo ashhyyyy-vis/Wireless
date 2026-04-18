@@ -8,7 +8,7 @@ import numpy as np
 from run_simulation import run_one
 
 ENV = "rural"
-LAMBDAS = [i for i in np.linspace(0.5, 3, 10)]  # range of λ to test
+LAMBDAS=[round(0.1 + i*0.05, 2) for i in range(int((5.0-0.1)/0.05) + 1)]  # 0.1, 0.15, 0.2, ..., 5.0
 
 print(f"Calibrating lambda for {ENV} environment...")
 print(f"{'Lambda':<10} {'CSR':<10}")
