@@ -39,6 +39,7 @@ from simulation.traffic import TrafficGenerator, Hotspot, UE
 from simulation.resource import RadioEngine, AdmissionController, CSRTracker
 from simulation.drone import Drone
 from simulation.algorithm import DronePositioningAlgorithm, CMType
+from simulation import handover
 
 # ---------------------------------------------------------------------------
 # Event types
@@ -259,6 +260,9 @@ def run_one(
                         active_ues[ue.ue_id] = ue
                         push(ue.departure_time, EV_DEPARTURE, ue.ue_id)
 
+            # Process handovers for all active UEs
+            handover.process_handovers(sim_time, active_ues, radio, admission)
+
             # Schedule next arrival
             push(traffic.next_arrival_time(sim_time), EV_ARRIVAL, None)
 
@@ -272,6 +276,9 @@ def run_one(
         # ==================================================================
         elif ev_type == EV_ALGORITHM:
             if drone.active:
+                # Process handovers periodically
+                handover.process_handovers(sim_time, active_ues, radio, admission)
+                
                 if mode == "algorithm" and algo is not None:
                     state = algo.step_algorithm()
                     trajectory.append((

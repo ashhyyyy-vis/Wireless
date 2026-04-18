@@ -1,4 +1,4 @@
-def process_handovers(sim_time):
+def process_handovers(sim_time, active_ues, radio, admission):
     for ue in list(active_ues.values()):
         if ue.serving_cell_id is None:
             continue
