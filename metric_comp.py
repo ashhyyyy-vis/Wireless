@@ -1,5 +1,6 @@
 import sys
 import csv
+import time
 import math
 import numpy as np
 from multiprocessing import Pool, cpu_count
@@ -13,8 +14,8 @@ from simulation.algorithm import CMType
 # -----------------------------
 # CONFIG
 # -----------------------------
-PHASE1 = 30 * 60
-PHASE3 = 2 * 3600
+PHASE1 = 30 
+PHASE3 = 2 * 60
 TOTAL  = PHASE1 + PHASE3
 
 LAMBDA = 11
@@ -112,6 +113,7 @@ def run_batch(mode, env, cx, cy, rho, cm=None):
 # MAIN
 # -----------------------------
 if __name__ == "__main__":
+    start=time.time()
 
     env, cx, cy, rho = parse_scenario(SCENARIO)
 
@@ -150,3 +152,4 @@ if __name__ == "__main__":
             })
 
     print(f"\nSaved -> {out_file}")
+    print(f"{time.time()-start} seconds run time")

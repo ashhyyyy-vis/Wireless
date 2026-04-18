@@ -12,8 +12,8 @@ from simulation.algorithm import CMType
 # -----------------------------
 # Config
 # -----------------------------
-PHASE1 = 30 * 60
-PHASE3 = 2 * 3600
+PHASE1 = 30 
+PHASE3 = 2 * 60
 TOTAL  = PHASE1 + PHASE3
 
 ENV = "urban"
