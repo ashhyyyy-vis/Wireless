@@ -1,0 +1,736 @@
+=======================================================
+  Validation: urban, rho=8, hotspot 200m NE, lam=0.5
+=======================================================
+  [1800s] Phase II: site failure + hotspot
+  t=1800s  CSR(5min)=1.0000  drone=(0.0,0.0)
+  t=1860s  CSR(5min)=0.6242  drone=(0.0,0.0)
+  t=1920s  CSR(5min)=0.6593  drone=(0.0,0.0)
+  t=1980s  CSR(5min)=0.6355  drone=(0.0,0.0)
+  t=2040s  CSR(5min)=0.6248  drone=(0.0,0.0)
+  t=2100s  CSR(5min)=0.6200  drone=(0.0,0.0)
+  t=2160s  CSR(5min)=0.6138  drone=(0.0,0.0)
+  t=2220s  CSR(5min)=0.5827  drone=(0.0,0.0)
+  t=2280s  CSR(5min)=0.5900  drone=(0.0,0.0)
+  t=2340s  CSR(5min)=0.5909  drone=(0.0,0.0)
+  t=2400s  CSR(5min)=0.6017  drone=(0.0,0.0)
+  t=2460s  CSR(5min)=0.5962  drone=(0.0,0.0)
+  t=2520s  CSR(5min)=0.6142  drone=(0.0,0.0)
+  t=2581s  CSR(5min)=0.6170  drone=(0.0,0.0)
+  t=2641s  CSR(5min)=0.6166  drone=(0.0,0.0)
+  t=2701s  CSR(5min)=0.5913  drone=(0.0,0.0)
+  t=2761s  CSR(5min)=0.5980  drone=(0.0,0.0)
+  t=2821s  CSR(5min)=0.6003  drone=(0.0,0.0)
+  t=2881s  CSR(5min)=0.6003  drone=(0.0,0.0)
+  t=2941s  CSR(5min)=0.6134  drone=(0.0,0.0)
+  t=3001s  CSR(5min)=0.6290  drone=(0.0,0.0)
+  t=3061s  CSR(5min)=0.6172  drone=(0.0,0.0)
+  t=3121s  CSR(5min)=0.5917  drone=(0.0,0.0)
+  t=3181s  CSR(5min)=0.5809  drone=(0.0,0.0)
+  t=3241s  CSR(5min)=0.5638  drone=(0.0,0.0)
+  t=3301s  CSR(5min)=0.5594  drone=(0.0,0.0)
+  t=3361s  CSR(5min)=0.5693  drone=(0.0,0.0)
+  t=3421s  CSR(5min)=0.5819  drone=(0.0,0.0)
+  t=3481s  CSR(5min)=0.5802  drone=(0.0,0.0)
+  t=3542s  CSR(5min)=0.5927  drone=(0.0,0.0)
+  t=3602s  CSR(5min)=0.5875  drone=(0.0,0.0)
+  t=3662s  CSR(5min)=0.5945  drone=(0.0,0.0)
+  t=3722s  CSR(5min)=0.5904  drone=(0.0,0.0)
+  t=3782s  CSR(5min)=0.6033  drone=(0.0,0.0)
+  t=3842s  CSR(5min)=0.5950  drone=(0.0,0.0)
+  t=3902s  CSR(5min)=0.6178  drone=(0.0,0.0)
+  t=3962s  CSR(5min)=0.5999  drone=(0.0,0.0)
+  t=4022s  CSR(5min)=0.6007  drone=(0.0,0.0)
+  t=4082s  CSR(5min)=0.5972  drone=(0.0,0.0)
+  t=4142s  CSR(5min)=0.6033  drone=(0.0,0.0)
+  t=4202s  CSR(5min)=0.5911  drone=(0.0,0.0)
+  t=4262s  CSR(5min)=0.6146  drone=(0.0,0.0)
+  t=4323s  CSR(5min)=0.6271  drone=(0.0,0.0)
+  t=4383s  CSR(5min)=0.6288  drone=(0.0,0.0)
+  t=4443s  CSR(5min)=0.6327  drone=(0.0,0.0)
+  t=4503s  CSR(5min)=0.6455  drone=(0.0,0.0)
+  t=4563s  CSR(5min)=0.6373  drone=(0.0,0.0)
+  t=4623s  CSR(5min)=0.6301  drone=(0.0,0.0)
+  t=4683s  CSR(5min)=0.6203  drone=(0.0,0.0)
+  t=4743s  CSR(5min)=0.6185  drone=(0.0,0.0)
+  t=4803s  CSR(5min)=0.6145  drone=(0.0,0.0)
+  t=4863s  CSR(5min)=0.6119  drone=(0.0,0.0)
+  t=4923s  CSR(5min)=0.6075  drone=(0.0,0.0)
+  t=4983s  CSR(5min)=0.6094  drone=(0.0,0.0)
+  t=5044s  CSR(5min)=0.5909  drone=(0.0,0.0)
+  t=5104s  CSR(5min)=0.5826  drone=(0.0,0.0)
+  t=5164s  CSR(5min)=0.5763  drone=(0.0,0.0)
+  t=5224s  CSR(5min)=0.5837  drone=(0.0,0.0)
+  t=5284s  CSR(5min)=0.5903  drone=(0.0,0.0)
+  t=5344s  CSR(5min)=0.5977  drone=(0.0,0.0)
+  t=5404s  CSR(5min)=0.5960  drone=(0.0,0.0)
+  t=5464s  CSR(5min)=0.5953  drone=(0.0,0.0)
+  t=5524s  CSR(5min)=0.5960  drone=(0.0,0.0)
+  t=5584s  CSR(5min)=0.5824  drone=(0.0,0.0)
+  t=5644s  CSR(5min)=0.5880  drone=(0.0,0.0)
+  t=5704s  CSR(5min)=0.5878  drone=(0.0,0.0)
+  t=5764s  CSR(5min)=0.5827  drone=(0.0,0.0)
+  t=5824s  CSR(5min)=0.5745  drone=(0.0,0.0)
+  t=5884s  CSR(5min)=0.5776  drone=(0.0,0.0)
+  t=5944s  CSR(5min)=0.5841  drone=(0.0,0.0)
+  t=6004s  CSR(5min)=0.5930  drone=(0.0,0.0)
+  t=6064s  CSR(5min)=0.6037  drone=(0.0,0.0)
+  t=6124s  CSR(5min)=0.6038  drone=(0.0,0.0)
+  t=6184s  CSR(5min)=0.6141  drone=(0.0,0.0)
+  t=6244s  CSR(5min)=0.6003  drone=(0.0,0.0)
+  t=6304s  CSR(5min)=0.5884  drone=(0.0,0.0)
+  t=6364s  CSR(5min)=0.5839  drone=(0.0,0.0)
+  t=6425s  CSR(5min)=0.5993  drone=(0.0,0.0)
+  t=6485s  CSR(5min)=0.6077  drone=(0.0,0.0)
+  t=6545s  CSR(5min)=0.6059  drone=(0.0,0.0)
+  t=6605s  CSR(5min)=0.6149  drone=(0.0,0.0)
+  t=6665s  CSR(5min)=0.6247  drone=(0.0,0.0)
+  t=6725s  CSR(5min)=0.6180  drone=(0.0,0.0)
+  t=6785s  CSR(5min)=0.5990  drone=(0.0,0.0)
+  t=6845s  CSR(5min)=0.5997  drone=(0.0,0.0)
+  t=6905s  CSR(5min)=0.5934  drone=(0.0,0.0)
+  t=6965s  CSR(5min)=0.5810  drone=(0.0,0.0)
+  t=7025s  CSR(5min)=0.5861  drone=(0.0,0.0)
+  t=7085s  CSR(5min)=0.5883  drone=(0.0,0.0)
+  t=7145s  CSR(5min)=0.5975  drone=(0.0,0.0)
+  t=7205s  CSR(5min)=0.6027  drone=(0.0,0.0)
+  t=7265s  CSR(5min)=0.6046  drone=(0.0,0.0)
+  t=7325s  CSR(5min)=0.6146  drone=(0.0,0.0)
+  t=7385s  CSR(5min)=0.6189  drone=(0.0,0.0)
+  t=7445s  CSR(5min)=0.6241  drone=(0.0,0.0)
+  t=7505s  CSR(5min)=0.6157  drone=(0.0,0.0)
+  t=7565s  CSR(5min)=0.6314  drone=(0.0,0.0)
+  t=7625s  CSR(5min)=0.6248  drone=(0.0,0.0)
+  t=7685s  CSR(5min)=0.6372  drone=(0.0,0.0)
+  t=7745s  CSR(5min)=0.6267  drone=(0.0,0.0)
+  t=7806s  CSR(5min)=0.6347  drone=(0.0,0.0)
+  t=7866s  CSR(5min)=0.6123  drone=(0.0,0.0)
+  t=7926s  CSR(5min)=0.6059  drone=(0.0,0.0)
+  t=7986s  CSR(5min)=0.5861  drone=(0.0,0.0)
+  t=8046s  CSR(5min)=0.5981  drone=(0.0,0.0)
+  t=8106s  CSR(5min)=0.6034  drone=(0.0,0.0)
+  t=8166s  CSR(5min)=0.6191  drone=(0.0,0.0)
+  t=8226s  CSR(5min)=0.6050  drone=(0.0,0.0)
+  t=8286s  CSR(5min)=0.6143  drone=(0.0,0.0)
+  t=8346s  CSR(5min)=0.6135  drone=(0.0,0.0)
+  t=8406s  CSR(5min)=0.6047  drone=(0.0,0.0)
+  t=8466s  CSR(5min)=0.6037  drone=(0.0,0.0)
+  t=8526s  CSR(5min)=0.6227  drone=(0.0,0.0)
+  t=8586s  CSR(5min)=0.6102  drone=(0.0,0.0)
+  t=8646s  CSR(5min)=0.6049  drone=(0.0,0.0)
+  t=8706s  CSR(5min)=0.6095  drone=(0.0,0.0)
+  t=8766s  CSR(5min)=0.5924  drone=(0.0,0.0)
+  t=8827s  CSR(5min)=0.5772  drone=(0.0,0.0)
+  t=8887s  CSR(5min)=0.5821  drone=(0.0,0.0)
+  t=8947s  CSR(5min)=0.5765  drone=(0.0,0.0)
+
+[no_drone] Post-disaster CSR snapshots:
+  t= 30.0min  CSR=1.0000
+  t= 31.0min  CSR=0.6242
+  t= 32.0min  CSR=0.6593
+  t= 33.0min  CSR=0.6355
+  t= 34.0min  CSR=0.6248
+  t= 35.0min  CSR=0.6200
+  t= 36.0min  CSR=0.6138
+  t= 37.0min  CSR=0.5827
+  t= 38.0min  CSR=0.5900
+  t= 39.0min  CSR=0.5909
+  t= 40.0min  CSR=0.6017
+  t= 41.0min  CSR=0.5962
+  t= 42.0min  CSR=0.6142
+  t= 43.0min  CSR=0.6170
+  t= 44.0min  CSR=0.6166
+  t= 45.0min  CSR=0.5913
+  t= 46.0min  CSR=0.5980
+  t= 47.0min  CSR=0.6003
+  t= 48.0min  CSR=0.6003
+  t= 49.0min  CSR=0.6134
+  t= 50.0min  CSR=0.6290
+  t= 51.0min  CSR=0.6172
+  t= 52.0min  CSR=0.5917
+  t= 53.0min  CSR=0.5809
+  t= 54.0min  CSR=0.5638
+  t= 55.0min  CSR=0.5594
+  t= 56.0min  CSR=0.5693
+  t= 57.0min  CSR=0.5819
+  t= 58.0min  CSR=0.5802
+  t= 59.0min  CSR=0.5927
+  t= 60.0min  CSR=0.5875
+  t= 61.0min  CSR=0.5945
+  t= 62.0min  CSR=0.5904
+  t= 63.0min  CSR=0.6033
+  t= 64.0min  CSR=0.5950
+  t= 65.0min  CSR=0.6178
+  t= 66.0min  CSR=0.5999
+  t= 67.0min  CSR=0.6007
+  t= 68.0min  CSR=0.5972
+  t= 69.0min  CSR=0.6033
+  t= 70.0min  CSR=0.5911
+  t= 71.0min  CSR=0.6146
+  t= 72.0min  CSR=0.6271
+  t= 73.0min  CSR=0.6288
+  t= 74.0min  CSR=0.6327
+  t= 75.0min  CSR=0.6455
+  t= 76.0min  CSR=0.6373
+  t= 77.0min  CSR=0.6301
+  t= 78.0min  CSR=0.6203
+  t= 79.1min  CSR=0.6185
+  t= 80.1min  CSR=0.6145
+  t= 81.1min  CSR=0.6119
+  t= 82.1min  CSR=0.6075
+  t= 83.1min  CSR=0.6094
+  t= 84.1min  CSR=0.5909
+  t= 85.1min  CSR=0.5826
+  t= 86.1min  CSR=0.5763
+  t= 87.1min  CSR=0.5837
+  t= 88.1min  CSR=0.5903
+  t= 89.1min  CSR=0.5977
+  t= 90.1min  CSR=0.5960
+  t= 91.1min  CSR=0.5953
+  t= 92.1min  CSR=0.5960
+  t= 93.1min  CSR=0.5824
+  t= 94.1min  CSR=0.5880
+  t= 95.1min  CSR=0.5878
+  t= 96.1min  CSR=0.5827
+  t= 97.1min  CSR=0.5745
+  t= 98.1min  CSR=0.5776
+  t= 99.1min  CSR=0.5841
+  t=100.1min  CSR=0.5930
+  t=101.1min  CSR=0.6037
+  t=102.1min  CSR=0.6038
+  t=103.1min  CSR=0.6141
+  t=104.1min  CSR=0.6003
+  t=105.1min  CSR=0.5884
+  t=106.1min  CSR=0.5839
+  t=107.1min  CSR=0.5993
+  t=108.1min  CSR=0.6077
+  t=109.1min  CSR=0.6059
+  t=110.1min  CSR=0.6149
+  t=111.1min  CSR=0.6247
+  t=112.1min  CSR=0.6180
+  t=113.1min  CSR=0.5990
+  t=114.1min  CSR=0.5997
+  t=115.1min  CSR=0.5934
+  t=116.1min  CSR=0.5810
+  t=117.1min  CSR=0.5861
+  t=118.1min  CSR=0.5883
+  t=119.1min  CSR=0.5975
+  t=120.1min  CSR=0.6027
+  t=121.1min  CSR=0.6046
+  t=122.1min  CSR=0.6146
+  t=123.1min  CSR=0.6189
+  t=124.1min  CSR=0.6241
+  t=125.1min  CSR=0.6157
+  t=126.1min  CSR=0.6314
+  t=127.1min  CSR=0.6248
+  t=128.1min  CSR=0.6372
+  t=129.1min  CSR=0.6267
+  t=130.1min  CSR=0.6347
+  t=131.1min  CSR=0.6123
+  t=132.1min  CSR=0.6059
+  t=133.1min  CSR=0.5861
+  t=134.1min  CSR=0.5981
+  t=135.1min  CSR=0.6034
+  t=136.1min  CSR=0.6191
+  t=137.1min  CSR=0.6050
+  t=138.1min  CSR=0.6143
+  t=139.1min  CSR=0.6135
+  t=140.1min  CSR=0.6047
+  t=141.1min  CSR=0.6037
+  t=142.1min  CSR=0.6227
+  t=143.1min  CSR=0.6102
+  t=144.1min  CSR=0.6049
+  t=145.1min  CSR=0.6095
+  t=146.1min  CSR=0.5924
+  t=147.1min  CSR=0.5772
+  t=148.1min  CSR=0.5821
+  t=149.1min  CSR=0.5765
+  --> final_csr = 0.5845
+  [1800s] Phase II: site failure + hotspot
+  t=1800s  CSR(5min)=1.0000  drone=(0.0,0.0)
+  t=1860s  CSR(5min)=0.6695  drone=(0.0,0.0)
+  t=1920s  CSR(5min)=0.6925  drone=(0.0,0.0)
+  t=1980s  CSR(5min)=0.6779  drone=(0.0,0.0)
+  t=2040s  CSR(5min)=0.6649  drone=(0.0,0.0)
+  t=2100s  CSR(5min)=0.6520  drone=(0.0,0.0)
+  t=2160s  CSR(5min)=0.6413  drone=(0.0,0.0)
+  t=2220s  CSR(5min)=0.6155  drone=(0.0,0.0)
+  t=2280s  CSR(5min)=0.6198  drone=(0.0,0.0)
+  t=2340s  CSR(5min)=0.6183  drone=(0.0,0.0)
+  t=2400s  CSR(5min)=0.6369  drone=(0.0,0.0)
+  t=2460s  CSR(5min)=0.6355  drone=(0.0,0.0)
+  t=2520s  CSR(5min)=0.6494  drone=(0.0,0.0)
+  t=2580s  CSR(5min)=0.6398  drone=(0.0,0.0)
+  t=2640s  CSR(5min)=0.6387  drone=(0.0,0.0)
+  t=2700s  CSR(5min)=0.6226  drone=(0.0,0.0)
+  t=2760s  CSR(5min)=0.6247  drone=(0.0,0.0)
+  t=2820s  CSR(5min)=0.6421  drone=(0.0,0.0)
+  t=2880s  CSR(5min)=0.6492  drone=(0.0,0.0)
+  t=2940s  CSR(5min)=0.6674  drone=(0.0,0.0)
+  t=3000s  CSR(5min)=0.6630  drone=(0.0,0.0)
+  t=3060s  CSR(5min)=0.6467  drone=(0.0,0.0)
+  t=3120s  CSR(5min)=0.6085  drone=(0.0,0.0)
+  t=3180s  CSR(5min)=0.5987  drone=(0.0,0.0)
+  t=3240s  CSR(5min)=0.5808  drone=(0.0,0.0)
+  t=3300s  CSR(5min)=0.5859  drone=(0.0,0.0)
+  t=3360s  CSR(5min)=0.5975  drone=(0.0,0.0)
+  t=3420s  CSR(5min)=0.6099  drone=(0.0,0.0)
+  t=3480s  CSR(5min)=0.6062  drone=(0.0,0.0)
+  t=3540s  CSR(5min)=0.6105  drone=(0.0,0.0)
+  t=3600s  CSR(5min)=0.6067  drone=(0.0,0.0)
+  t=3660s  CSR(5min)=0.6221  drone=(0.0,0.0)
+  t=3720s  CSR(5min)=0.6202  drone=(0.0,0.0)
+  t=3780s  CSR(5min)=0.6347  drone=(0.0,0.0)
+  t=3840s  CSR(5min)=0.6375  drone=(0.0,0.0)
+  t=3900s  CSR(5min)=0.6502  drone=(0.0,0.0)
+  t=3960s  CSR(5min)=0.6378  drone=(0.0,0.0)
+  t=4020s  CSR(5min)=0.6365  drone=(0.0,0.0)
+  t=4080s  CSR(5min)=0.6202  drone=(0.0,0.0)
+  t=4140s  CSR(5min)=0.6257  drone=(0.0,0.0)
+  t=4200s  CSR(5min)=0.6235  drone=(0.0,0.0)
+  t=4260s  CSR(5min)=0.6423  drone=(0.0,0.0)
+  t=4320s  CSR(5min)=0.6596  drone=(0.0,0.0)
+  t=4380s  CSR(5min)=0.6721  drone=(0.0,0.0)
+  t=4440s  CSR(5min)=0.6711  drone=(0.0,0.0)
+  t=4500s  CSR(5min)=0.6807  drone=(0.0,0.0)
+  t=4561s  CSR(5min)=0.6615  drone=(0.0,0.0)
+  t=4621s  CSR(5min)=0.6375  drone=(0.0,0.0)
+  t=4681s  CSR(5min)=0.6367  drone=(0.0,0.0)
+  t=4741s  CSR(5min)=0.6367  drone=(0.0,0.0)
+  t=4801s  CSR(5min)=0.6387  drone=(0.0,0.0)
+  t=4861s  CSR(5min)=0.6397  drone=(0.0,0.0)
+  t=4921s  CSR(5min)=0.6455  drone=(0.0,0.0)
+  t=4981s  CSR(5min)=0.6426  drone=(0.0,0.0)
+  t=5041s  CSR(5min)=0.6289  drone=(0.0,0.0)
+  t=5101s  CSR(5min)=0.6199  drone=(0.0,0.0)
+  t=5161s  CSR(5min)=0.6177  drone=(0.0,0.0)
+  t=5221s  CSR(5min)=0.6207  drone=(0.0,0.0)
+  t=5281s  CSR(5min)=0.6243  drone=(0.0,0.0)
+  t=5341s  CSR(5min)=0.6327  drone=(0.0,0.0)
+  t=5401s  CSR(5min)=0.6216  drone=(0.0,0.0)
+  t=5461s  CSR(5min)=0.6226  drone=(0.0,0.0)
+  t=5521s  CSR(5min)=0.6295  drone=(0.0,0.0)
+  t=5581s  CSR(5min)=0.6142  drone=(0.0,0.0)
+  t=5641s  CSR(5min)=0.6110  drone=(0.0,0.0)
+  t=5701s  CSR(5min)=0.6160  drone=(0.0,0.0)
+  t=5761s  CSR(5min)=0.6122  drone=(0.0,0.0)
+  t=5821s  CSR(5min)=0.5985  drone=(0.0,0.0)
+  t=5881s  CSR(5min)=0.6119  drone=(0.0,0.0)
+  t=5941s  CSR(5min)=0.6199  drone=(0.0,0.0)
+  t=6002s  CSR(5min)=0.6223  drone=(0.0,0.0)
+  t=6062s  CSR(5min)=0.6355  drone=(0.0,0.0)
+  t=6122s  CSR(5min)=0.6453  drone=(0.0,0.0)
+  t=6182s  CSR(5min)=0.6433  drone=(0.0,0.0)
+  t=6242s  CSR(5min)=0.6331  drone=(0.0,0.0)
+  t=6302s  CSR(5min)=0.6285  drone=(0.0,0.0)
+  t=6362s  CSR(5min)=0.6266  drone=(0.0,0.0)
+  t=6422s  CSR(5min)=0.6182  drone=(0.0,0.0)
+  t=6482s  CSR(5min)=0.6298  drone=(0.0,0.0)
+  t=6542s  CSR(5min)=0.6294  drone=(0.0,0.0)
+  t=6602s  CSR(5min)=0.6361  drone=(0.0,0.0)
+  t=6662s  CSR(5min)=0.6355  drone=(0.0,0.0)
+  t=6722s  CSR(5min)=0.6505  drone=(0.0,0.0)
+  t=6782s  CSR(5min)=0.6320  drone=(0.0,0.0)
+  t=6842s  CSR(5min)=0.6241  drone=(0.0,0.0)
+  t=6902s  CSR(5min)=0.6156  drone=(0.0,0.0)
+  t=6962s  CSR(5min)=0.6034  drone=(0.0,0.0)
+  t=7022s  CSR(5min)=0.5993  drone=(0.0,0.0)
+  t=7082s  CSR(5min)=0.6020  drone=(0.0,0.0)
+  t=7142s  CSR(5min)=0.6077  drone=(0.0,0.0)
+  t=7202s  CSR(5min)=0.6179  drone=(0.0,0.0)
+  t=7262s  CSR(5min)=0.6272  drone=(0.0,0.0)
+  t=7322s  CSR(5min)=0.6392  drone=(0.0,0.0)
+  t=7382s  CSR(5min)=0.6479  drone=(0.0,0.0)
+  t=7442s  CSR(5min)=0.6572  drone=(0.0,0.0)
+  t=7502s  CSR(5min)=0.6521  drone=(0.0,0.0)
+  t=7562s  CSR(5min)=0.6537  drone=(0.0,0.0)
+  t=7622s  CSR(5min)=0.6507  drone=(0.0,0.0)
+  t=7683s  CSR(5min)=0.6638  drone=(0.0,0.0)
+  t=7743s  CSR(5min)=0.6606  drone=(0.0,0.0)
+  t=7803s  CSR(5min)=0.6632  drone=(0.0,0.0)
+  t=7863s  CSR(5min)=0.6471  drone=(0.0,0.0)
+  t=7923s  CSR(5min)=0.6327  drone=(0.0,0.0)
+  t=7983s  CSR(5min)=0.6116  drone=(0.0,0.0)
+  t=8043s  CSR(5min)=0.6110  drone=(0.0,0.0)
+  t=8103s  CSR(5min)=0.6164  drone=(0.0,0.0)
+  t=8163s  CSR(5min)=0.6359  drone=(0.0,0.0)
+  t=8223s  CSR(5min)=0.6328  drone=(0.0,0.0)
+  t=8283s  CSR(5min)=0.6390  drone=(0.0,0.0)
+  t=8343s  CSR(5min)=0.6349  drone=(0.0,0.0)
+  t=8403s  CSR(5min)=0.6278  drone=(0.0,0.0)
+  t=8463s  CSR(5min)=0.6271  drone=(0.0,0.0)
+  t=8523s  CSR(5min)=0.6318  drone=(0.0,0.0)
+  t=8583s  CSR(5min)=0.6227  drone=(0.0,0.0)
+  t=8643s  CSR(5min)=0.6189  drone=(0.0,0.0)
+  t=8703s  CSR(5min)=0.6302  drone=(0.0,0.0)
+  t=8764s  CSR(5min)=0.6234  drone=(0.0,0.0)
+  t=8824s  CSR(5min)=0.6130  drone=(0.0,0.0)
+  t=8884s  CSR(5min)=0.6084  drone=(0.0,0.0)
+  t=8944s  CSR(5min)=0.6130  drone=(0.0,0.0)
+
+[static_drone] Post-disaster CSR snapshots:
+  t= 30.0min  CSR=1.0000
+  t= 31.0min  CSR=0.6695
+  t= 32.0min  CSR=0.6925
+  t= 33.0min  CSR=0.6779
+  t= 34.0min  CSR=0.6649
+  t= 35.0min  CSR=0.6520
+  t= 36.0min  CSR=0.6413
+  t= 37.0min  CSR=0.6155
+  t= 38.0min  CSR=0.6198
+  t= 39.0min  CSR=0.6183
+  t= 40.0min  CSR=0.6369
+  t= 41.0min  CSR=0.6355
+  t= 42.0min  CSR=0.6494
+  t= 43.0min  CSR=0.6398
+  t= 44.0min  CSR=0.6387
+  t= 45.0min  CSR=0.6226
+  t= 46.0min  CSR=0.6247
+  t= 47.0min  CSR=0.6421
+  t= 48.0min  CSR=0.6492
+  t= 49.0min  CSR=0.6674
+  t= 50.0min  CSR=0.6630
+  t= 51.0min  CSR=0.6467
+  t= 52.0min  CSR=0.6085
+  t= 53.0min  CSR=0.5987
+  t= 54.0min  CSR=0.5808
+  t= 55.0min  CSR=0.5859
+  t= 56.0min  CSR=0.5975
+  t= 57.0min  CSR=0.6099
+  t= 58.0min  CSR=0.6062
+  t= 59.0min  CSR=0.6105
+  t= 60.0min  CSR=0.6067
+  t= 61.0min  CSR=0.6221
+  t= 62.0min  CSR=0.6202
+  t= 63.0min  CSR=0.6347
+  t= 64.0min  CSR=0.6375
+  t= 65.0min  CSR=0.6502
+  t= 66.0min  CSR=0.6378
+  t= 67.0min  CSR=0.6365
+  t= 68.0min  CSR=0.6202
+  t= 69.0min  CSR=0.6257
+  t= 70.0min  CSR=0.6235
+  t= 71.0min  CSR=0.6423
+  t= 72.0min  CSR=0.6596
+  t= 73.0min  CSR=0.6721
+  t= 74.0min  CSR=0.6711
+  t= 75.0min  CSR=0.6807
+  t= 76.0min  CSR=0.6615
+  t= 77.0min  CSR=0.6375
+  t= 78.0min  CSR=0.6367
+  t= 79.0min  CSR=0.6367
+  t= 80.0min  CSR=0.6387
+  t= 81.0min  CSR=0.6397
+  t= 82.0min  CSR=0.6455
+  t= 83.0min  CSR=0.6426
+  t= 84.0min  CSR=0.6289
+  t= 85.0min  CSR=0.6199
+  t= 86.0min  CSR=0.6177
+  t= 87.0min  CSR=0.6207
+  t= 88.0min  CSR=0.6243
+  t= 89.0min  CSR=0.6327
+  t= 90.0min  CSR=0.6216
+  t= 91.0min  CSR=0.6226
+  t= 92.0min  CSR=0.6295
+  t= 93.0min  CSR=0.6142
+  t= 94.0min  CSR=0.6110
+  t= 95.0min  CSR=0.6160
+  t= 96.0min  CSR=0.6122
+  t= 97.0min  CSR=0.5985
+  t= 98.0min  CSR=0.6119
+  t= 99.0min  CSR=0.6199
+  t=100.0min  CSR=0.6223
+  t=101.0min  CSR=0.6355
+  t=102.0min  CSR=0.6453
+  t=103.0min  CSR=0.6433
+  t=104.0min  CSR=0.6331
+  t=105.0min  CSR=0.6285
+  t=106.0min  CSR=0.6266
+  t=107.0min  CSR=0.6182
+  t=108.0min  CSR=0.6298
+  t=109.0min  CSR=0.6294
+  t=110.0min  CSR=0.6361
+  t=111.0min  CSR=0.6355
+  t=112.0min  CSR=0.6505
+  t=113.0min  CSR=0.6320
+  t=114.0min  CSR=0.6241
+  t=115.0min  CSR=0.6156
+  t=116.0min  CSR=0.6034
+  t=117.0min  CSR=0.5993
+  t=118.0min  CSR=0.6020
+  t=119.0min  CSR=0.6077
+  t=120.0min  CSR=0.6179
+  t=121.0min  CSR=0.6272
+  t=122.0min  CSR=0.6392
+  t=123.0min  CSR=0.6479
+  t=124.0min  CSR=0.6572
+  t=125.0min  CSR=0.6521
+  t=126.0min  CSR=0.6537
+  t=127.0min  CSR=0.6507
+  t=128.0min  CSR=0.6638
+  t=129.0min  CSR=0.6606
+  t=130.0min  CSR=0.6632
+  t=131.0min  CSR=0.6471
+  t=132.0min  CSR=0.6327
+  t=133.0min  CSR=0.6116
+  t=134.0min  CSR=0.6110
+  t=135.0min  CSR=0.6164
+  t=136.0min  CSR=0.6359
+  t=137.0min  CSR=0.6328
+  t=138.1min  CSR=0.6390
+  t=139.1min  CSR=0.6349
+  t=140.1min  CSR=0.6278
+  t=141.1min  CSR=0.6271
+  t=142.1min  CSR=0.6318
+  t=143.1min  CSR=0.6227
+  t=144.1min  CSR=0.6189
+  t=145.1min  CSR=0.6302
+  t=146.1min  CSR=0.6234
+  t=147.1min  CSR=0.6130
+  t=148.1min  CSR=0.6084
+  t=149.1min  CSR=0.6130
+  --> final_csr = 0.6044
+  [1800s] Phase II: site failure + hotspot
+  t=1800s  CSR(5min)=1.0000  drone=(0.0,0.0)
+  t=1860s  CSR(5min)=0.6652  drone=(8.0,42.0)
+  t=1920s  CSR(5min)=0.6991  drone=(17.0,55.0)
+  t=1980s  CSR(5min)=0.6765  drone=(64.0,80.0)
+  t=2040s  CSR(5min)=0.6638  drone=(66.0,72.0)
+  t=2100s  CSR(5min)=0.6563  drone=(82.0,62.0)
+  t=2160s  CSR(5min)=0.6486  drone=(51.0,65.0)
+  t=2220s  CSR(5min)=0.6167  drone=(37.0,73.0)
+  t=2280s  CSR(5min)=0.6245  drone=(37.0,51.0)
+  t=2340s  CSR(5min)=0.6246  drone=(23.0,85.0)
+  t=2400s  CSR(5min)=0.6433  drone=(-10.0,74.0)
+  t=2460s  CSR(5min)=0.6363  drone=(-4.0,70.0)
+  t=2520s  CSR(5min)=0.6498  drone=(-14.0,56.0)
+  t=2580s  CSR(5min)=0.6363  drone=(-20.0,40.0)
+  t=2640s  CSR(5min)=0.6338  drone=(10.0,72.0)
+  t=2700s  CSR(5min)=0.6007  drone=(-18.0,80.0)
+  t=2760s  CSR(5min)=0.6125  drone=(-15.0,75.0)
+  t=2820s  CSR(5min)=0.6260  drone=(-3.0,117.0)
+  t=2880s  CSR(5min)=0.6376  drone=(3.0,113.0)
+  t=2940s  CSR(5min)=0.6490  drone=(7.0,123.0)
+  t=3000s  CSR(5min)=0.6653  drone=(-1.0,113.0)
+  t=3060s  CSR(5min)=0.6373  drone=(10.0,100.0)
+  t=3120s  CSR(5min)=0.6034  drone=(13.0,91.0)
+  t=3180s  CSR(5min)=0.5859  drone=(27.0,91.0)
+  t=3240s  CSR(5min)=0.5770  drone=(24.0,100.0)
+  t=3300s  CSR(5min)=0.5709  drone=(44.0,156.0)
+  t=3360s  CSR(5min)=0.5865  drone=(51.0,165.0)
+  t=3420s  CSR(5min)=0.5937  drone=(48.0,190.0)
+  t=3480s  CSR(5min)=0.5994  drone=(55.0,243.0)
+  t=3540s  CSR(5min)=0.5979  drone=(55.0,247.0)
+  t=3600s  CSR(5min)=0.5953  drone=(87.0,229.0)
+  t=3660s  CSR(5min)=0.5974  drone=(83.0,249.0)
+  t=3720s  CSR(5min)=0.5988  drone=(78.0,240.0)
+  t=3780s  CSR(5min)=0.6133  drone=(91.0,229.0)
+  t=3840s  CSR(5min)=0.6191  drone=(133.0,227.0)
+  t=3900s  CSR(5min)=0.6312  drone=(116.0,208.0)
+  t=3960s  CSR(5min)=0.6287  drone=(129.0,183.0)
+  t=4020s  CSR(5min)=0.6325  drone=(139.0,183.0)
+  t=4080s  CSR(5min)=0.6167  drone=(189.0,195.0)
+  t=4140s  CSR(5min)=0.6226  drone=(208.0,149.0)
+  t=4200s  CSR(5min)=0.6248  drone=(219.0,164.0)
+  t=4260s  CSR(5min)=0.6327  drone=(193.0,152.0)
+  t=4320s  CSR(5min)=0.6452  drone=(208.0,159.0)
+  t=4380s  CSR(5min)=0.6493  drone=(214.0,153.0)
+  t=4440s  CSR(5min)=0.6489  drone=(195.0,142.0)
+  t=4501s  CSR(5min)=0.6472  drone=(190.0,129.0)
+  t=4561s  CSR(5min)=0.6468  drone=(192.0,152.0)
+  t=4621s  CSR(5min)=0.6352  drone=(207.0,175.0)
+  t=4681s  CSR(5min)=0.6337  drone=(218.0,194.0)
+  t=4741s  CSR(5min)=0.6328  drone=(224.0,208.0)
+  t=4801s  CSR(5min)=0.6323  drone=(221.0,233.0)
+  t=4861s  CSR(5min)=0.6189  drone=(222.0,206.0)
+  t=4921s  CSR(5min)=0.6088  drone=(263.0,199.0)
+  t=4981s  CSR(5min)=0.6066  drone=(238.0,210.0)
+  t=5041s  CSR(5min)=0.5879  drone=(224.0,241.0)
+  t=5101s  CSR(5min)=0.5817  drone=(250.0,263.0)
+  t=5161s  CSR(5min)=0.5841  drone=(261.0,256.0)
+  t=5221s  CSR(5min)=0.5920  drone=(231.0,236.0)
+  t=5281s  CSR(5min)=0.5999  drone=(261.0,238.0)
+  t=5341s  CSR(5min)=0.5975  drone=(268.0,231.0)
+  t=5401s  CSR(5min)=0.5908  drone=(268.0,259.0)
+  t=5461s  CSR(5min)=0.5893  drone=(268.0,283.0)
+  t=5521s  CSR(5min)=0.5980  drone=(268.0,301.0)
+  t=5581s  CSR(5min)=0.5865  drone=(259.0,302.0)
+  t=5641s  CSR(5min)=0.5988  drone=(284.0,290.0)
+  t=5701s  CSR(5min)=0.6055  drone=(319.0,311.0)
+  t=5761s  CSR(5min)=0.6001  drone=(305.0,303.0)
+  t=5821s  CSR(5min)=0.5942  drone=(305.0,301.0)
+  t=5881s  CSR(5min)=0.5890  drone=(306.0,304.0)
+  t=5942s  CSR(5min)=0.5951  drone=(313.0,287.0)
+  t=6002s  CSR(5min)=0.5975  drone=(329.0,287.0)
+  t=6062s  CSR(5min)=0.6063  drone=(312.0,284.0)
+  t=6122s  CSR(5min)=0.6025  drone=(304.0,284.0)
+  t=6182s  CSR(5min)=0.6236  drone=(298.0,315.0)
+  t=6242s  CSR(5min)=0.6073  drone=(301.0,334.0)
+  t=6302s  CSR(5min)=0.6074  drone=(298.0,327.0)
+  t=6362s  CSR(5min)=0.6025  drone=(298.0,299.0)
+  t=6422s  CSR(5min)=0.6110  drone=(298.0,309.0)
+  t=6482s  CSR(5min)=0.6136  drone=(328.0,257.0)
+  t=6542s  CSR(5min)=0.6156  drone=(326.0,259.0)
+  t=6602s  CSR(5min)=0.6106  drone=(260.0,259.0)
+  t=6662s  CSR(5min)=0.6196  drone=(264.0,245.0)
+  t=6722s  CSR(5min)=0.6197  drone=(267.0,235.0)
+  t=6782s  CSR(5min)=0.6032  drone=(285.0,193.0)
+  t=6842s  CSR(5min)=0.6075  drone=(289.0,189.0)
+  t=6902s  CSR(5min)=0.6058  drone=(293.0,171.0)
+  t=6962s  CSR(5min)=0.5927  drone=(316.0,180.0)
+  t=7023s  CSR(5min)=0.5901  drone=(322.0,156.0)
+  t=7083s  CSR(5min)=0.5909  drone=(340.0,188.0)
+  t=7143s  CSR(5min)=0.5893  drone=(353.0,187.0)
+  t=7203s  CSR(5min)=0.5974  drone=(350.0,190.0)
+  t=7263s  CSR(5min)=0.5944  drone=(322.0,189.0)
+  t=7323s  CSR(5min)=0.6044  drone=(356.0,189.0)
+  t=7383s  CSR(5min)=0.6133  drone=(362.0,187.0)
+  t=7443s  CSR(5min)=0.6091  drone=(366.0,229.0)
+  t=7503s  CSR(5min)=0.5982  drone=(379.0,230.0)
+  t=7563s  CSR(5min)=0.6300  drone=(389.0,220.0)
+  t=7623s  CSR(5min)=0.6245  drone=(388.0,249.0)
+  t=7683s  CSR(5min)=0.6322  drone=(393.0,260.0)
+  t=7743s  CSR(5min)=0.6298  drone=(388.0,301.0)
+  t=7803s  CSR(5min)=0.6362  drone=(403.0,288.0)
+  t=7863s  CSR(5min)=0.6073  drone=(369.0,288.0)
+  t=7923s  CSR(5min)=0.5971  drone=(375.0,288.0)
+  t=7983s  CSR(5min)=0.5802  drone=(365.0,328.0)
+  t=8043s  CSR(5min)=0.5917  drone=(350.0,314.0)
+  t=8103s  CSR(5min)=0.5983  drone=(344.0,340.0)
+  t=8163s  CSR(5min)=0.6062  drone=(320.0,348.0)
+  t=8223s  CSR(5min)=0.6059  drone=(306.0,360.0)
+  t=8283s  CSR(5min)=0.6074  drone=(287.0,341.0)
+  t=8343s  CSR(5min)=0.6002  drone=(313.0,337.0)
+  t=8403s  CSR(5min)=0.5908  drone=(313.0,355.0)
+  t=8463s  CSR(5min)=0.5955  drone=(297.0,401.0)
+  t=8523s  CSR(5min)=0.5975  drone=(314.0,416.0)
+  t=8583s  CSR(5min)=0.5959  drone=(308.0,408.0)
+  t=8643s  CSR(5min)=0.5919  drone=(312.0,402.0)
+  t=8703s  CSR(5min)=0.5978  drone=(318.0,415.0)
+  t=8763s  CSR(5min)=0.5874  drone=(359.0,408.0)
+  t=8823s  CSR(5min)=0.5777  drone=(337.0,422.0)
+  t=8884s  CSR(5min)=0.5717  drone=(360.0,425.0)
+  t=8944s  CSR(5min)=0.5776  drone=(343.0,428.0)
+
+[algorithm] Post-disaster CSR snapshots:
+  t= 30.0min  CSR=1.0000
+  t= 31.0min  CSR=0.6652
+  t= 32.0min  CSR=0.6991
+  t= 33.0min  CSR=0.6765
+  t= 34.0min  CSR=0.6638
+  t= 35.0min  CSR=0.6563
+  t= 36.0min  CSR=0.6486
+  t= 37.0min  CSR=0.6167
+  t= 38.0min  CSR=0.6245
+  t= 39.0min  CSR=0.6246
+  t= 40.0min  CSR=0.6433
+  t= 41.0min  CSR=0.6363
+  t= 42.0min  CSR=0.6498
+  t= 43.0min  CSR=0.6363
+  t= 44.0min  CSR=0.6338
+  t= 45.0min  CSR=0.6007
+  t= 46.0min  CSR=0.6125
+  t= 47.0min  CSR=0.6260
+  t= 48.0min  CSR=0.6376
+  t= 49.0min  CSR=0.6490
+  t= 50.0min  CSR=0.6653
+  t= 51.0min  CSR=0.6373
+  t= 52.0min  CSR=0.6034
+  t= 53.0min  CSR=0.5859
+  t= 54.0min  CSR=0.5770
+  t= 55.0min  CSR=0.5709
+  t= 56.0min  CSR=0.5865
+  t= 57.0min  CSR=0.5937
+  t= 58.0min  CSR=0.5994
+  t= 59.0min  CSR=0.5979
+  t= 60.0min  CSR=0.5953
+  t= 61.0min  CSR=0.5974
+  t= 62.0min  CSR=0.5988
+  t= 63.0min  CSR=0.6133
+  t= 64.0min  CSR=0.6191
+  t= 65.0min  CSR=0.6312
+  t= 66.0min  CSR=0.6287
+  t= 67.0min  CSR=0.6325
+  t= 68.0min  CSR=0.6167
+  t= 69.0min  CSR=0.6226
+  t= 70.0min  CSR=0.6248
+  t= 71.0min  CSR=0.6327
+  t= 72.0min  CSR=0.6452
+  t= 73.0min  CSR=0.6493
+  t= 74.0min  CSR=0.6489
+  t= 75.0min  CSR=0.6472
+  t= 76.0min  CSR=0.6468
+  t= 77.0min  CSR=0.6352
+  t= 78.0min  CSR=0.6337
+  t= 79.0min  CSR=0.6328
+  t= 80.0min  CSR=0.6323
+  t= 81.0min  CSR=0.6189
+  t= 82.0min  CSR=0.6088
+  t= 83.0min  CSR=0.6066
+  t= 84.0min  CSR=0.5879
+  t= 85.0min  CSR=0.5817
+  t= 86.0min  CSR=0.5841
+  t= 87.0min  CSR=0.5920
+  t= 88.0min  CSR=0.5999
+  t= 89.0min  CSR=0.5975
+  t= 90.0min  CSR=0.5908
+  t= 91.0min  CSR=0.5893
+  t= 92.0min  CSR=0.5980
+  t= 93.0min  CSR=0.5865
+  t= 94.0min  CSR=0.5988
+  t= 95.0min  CSR=0.6055
+  t= 96.0min  CSR=0.6001
+  t= 97.0min  CSR=0.5942
+  t= 98.0min  CSR=0.5890
+  t= 99.0min  CSR=0.5951
+  t=100.0min  CSR=0.5975
+  t=101.0min  CSR=0.6063
+  t=102.0min  CSR=0.6025
+  t=103.0min  CSR=0.6236
+  t=104.0min  CSR=0.6073
+  t=105.0min  CSR=0.6074
+  t=106.0min  CSR=0.6025
+  t=107.0min  CSR=0.6110
+  t=108.0min  CSR=0.6136
+  t=109.0min  CSR=0.6156
+  t=110.0min  CSR=0.6106
+  t=111.0min  CSR=0.6196
+  t=112.0min  CSR=0.6197
+  t=113.0min  CSR=0.6032
+  t=114.0min  CSR=0.6075
+  t=115.0min  CSR=0.6058
+  t=116.0min  CSR=0.5927
+  t=117.0min  CSR=0.5901
+  t=118.0min  CSR=0.5909
+  t=119.0min  CSR=0.5893
+  t=120.0min  CSR=0.5974
+  t=121.0min  CSR=0.5944
+  t=122.0min  CSR=0.6044
+  t=123.0min  CSR=0.6133
+  t=124.0min  CSR=0.6091
+  t=125.0min  CSR=0.5982
+  t=126.0min  CSR=0.6300
+  t=127.0min  CSR=0.6245
+  t=128.0min  CSR=0.6322
+  t=129.0min  CSR=0.6298
+  t=130.0min  CSR=0.6362
+  t=131.0min  CSR=0.6073
+  t=132.0min  CSR=0.5971
+  t=133.0min  CSR=0.5802
+  t=134.0min  CSR=0.5917
+  t=135.0min  CSR=0.5983
+  t=136.0min  CSR=0.6062
+  t=137.0min  CSR=0.6059
+  t=138.1min  CSR=0.6074
+  t=139.1min  CSR=0.6002
+  t=140.1min  CSR=0.5908
+  t=141.1min  CSR=0.5955
+  t=142.1min  CSR=0.5975
+  t=143.1min  CSR=0.5959
+  t=144.1min  CSR=0.5919
+  t=145.1min  CSR=0.5978
+  t=146.1min  CSR=0.5874
+  t=147.1min  CSR=0.5777
+  t=148.1min  CSR=0.5717
+  t=149.1min  CSR=0.5776
+  --> final_csr = 0.5798
+  --> final drone pos: (343.0, 407.0), CM=0.0494

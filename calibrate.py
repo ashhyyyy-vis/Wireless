@@ -7,7 +7,8 @@ import numpy as np
 from run_simulation import run_one
 
 ENV = "urban"
-LAMBDAS = [2.0, 4.0, 6.0, 8.0, 10.0]
+LAMBDAS=[i/10 for i in range(13,20)]
+LAMBDAS.extend([2.0, 4.0, 6.0, 8.0, 10.0])
 
 print(f"Calibrating lambda for {ENV} environment...")
 print(f"{'Lambda':<10} {'CSR':<10}")

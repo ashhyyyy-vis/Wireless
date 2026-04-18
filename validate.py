@@ -12,7 +12,7 @@ from simulation.algorithm import CMType
 PHASE1 = 30 * 60       # 30 min warm-up
 PHASE3 = 2 * 3600      # 2 h recovery
 TOTAL  = PHASE1 + PHASE3
-LAM    = 0.5           # high load to create congestion
+LAM    = 11           # high load to create congestion
 
 print("=" * 55)
 print("  Validation: urban, rho=8, hotspot 200m NE, lam=0.5")

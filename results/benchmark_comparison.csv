@@ -1,4 +1,4 @@
 env,rho,hotspot_cx,hotspot_cy,mode,mean_csr,std_csr
-urban,4.0,100.0,100.0,no_drone,1.0000,0.0000
-urban,4.0,100.0,100.0,static_drone,1.0000,0.0000
-urban,4.0,100.0,100.0,algorithm,1.0000,0.0000
+urban,4.0,50.0,86.6,no_drone,0.8674,0.0142
+urban,4.0,50.0,86.6,static_drone,0.8799,0.0160
+urban,4.0,50.0,86.6,algorithm,0.8652,0.0140

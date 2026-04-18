@@ -46,8 +46,8 @@ CTRL_OVERHEAD_KAPPA = 0.1      # fraction of BW for control signals
 P_TX_BS_W = 20.0               # 20 W  (43 dBm)
 P_TX_BS_DBM = 10 * math.log10(P_TX_BS_W * 1e3)   # ≈ 43 dBm
 
-P_TX_DRONE_W = 0.5             # 0.5 W (27 dBm)
-P_TX_DRONE_DBM = 10 * math.log10(P_TX_DRONE_W * 1e3)   # ≈ 27 dBm
+P_TX_DRONE_W = 20             # 20 W (33 dBm)
+P_TX_DRONE_DBM = 10 * math.log10(P_TX_DRONE_W * 1e3)   # ≈ 33 dBm
 
 # ---------------------------------------------------------------------------
 # Drone fixed parameters (Section VI-D finding)
@@ -137,8 +137,8 @@ CALL_DURATION_MEAN_S = 120.0      # mean call duration (τ), exponential
 # Arrival rate λ (calls/s over the whole cluster area) — tuned per env.
 # Set so that healthy CSR ≈ 98 %.  Adjust during calibration.
 LAMBDA_ARRIVAL = {
-    "urban": 0.005,   # starting guess; calibrate in Phase I
-    "rural": 0.001,
+    "urban": 5,   # starting guess; calibrate in Phase I
+    "rural": 1.3,
 }
 
 # Hotspot
