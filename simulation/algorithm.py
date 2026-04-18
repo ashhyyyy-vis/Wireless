@@ -59,48 +59,58 @@ def compute_cm(
     drone_lpu      = admission.cell_load_per_ue(drone_cell_id)
     drone_n        = admission.num_ues(drone_cell_id)
 
-    # --- Most-loaded regular neighbour cell ---
-    neighbour_ids  = network.neighbour_cell_ids_of_failing_site()
+        # --- Neighbour metrics (AVERAGED instead of max) ---
+    neighbour_ids = network.neighbour_cell_ids_of_failing_site()
 
-    best_id, best_load, best_lpu, best_n = None, 0.0, 0.0, 0
+    loads = []
+    lpus  = []
+    ns    = []
+
     for cid in neighbour_ids:
         cell = network.get_cell(cid)
         if not cell.active:
             continue
-        load = admission.cell_load(cid)
-        if load > best_load:
-            best_load = load
-            best_lpu  = admission.cell_load_per_ue(cid)
-            best_n    = admission.num_ues(cid)
-            best_id   = cid
 
-    # Guard: if no neighbour found
-    if best_id is None:
-        best_load, best_lpu, best_n = 0.0, 0.0, 0
+        loads.append(admission.cell_load(cid))
+        lpus.append(admission.cell_load_per_ue(cid))
+        ns.append(admission.num_ues(cid))
 
+    avg_load = sum(loads) / len(loads) if loads else 0.0
+    avg_lpu  = sum(lpus) / len(lpus) if lpus else 0.0
+    total_n  = sum(ns)
+
+    
     if cm_type == CMType.CM1:
         return drone_load
 
     elif cm_type == CMType.CM2:
-        return best_load
+        return avg_load
 
     elif cm_type == CMType.CM3:
-        return drone_load + best_load
+        return drone_load + avg_load
 
     elif cm_type == CMType.CM4:
         return drone_lpu
 
     elif cm_type == CMType.CM5:
-        return best_lpu
+        return avg_lpu
 
     elif cm_type == CMType.CM6:
-        return (drone_lpu + best_lpu) / 2.0
+        return (drone_lpu + avg_lpu) / 2.0
 
     elif cm_type == CMType.CM7:
-        total_n = drone_n + best_n
-        if total_n == 0:
+        if drone_n + total_n == 0:
             return 0.0
-        return (drone_n * drone_lpu + best_n * best_lpu) / total_n
+
+        # weighted neighbour LPU
+        weighted_neigh_lpu = (
+            sum(n * l for n, l in zip(ns, lpus)) / total_n
+            if total_n > 0 else 0.0
+        )
+
+        return (
+            drone_n * drone_lpu + total_n * weighted_neigh_lpu
+        ) / (drone_n + total_n)
 
     raise ValueError(f"Unknown CM type: {cm_type}")
 
