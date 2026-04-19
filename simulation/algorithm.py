@@ -104,38 +104,38 @@ def compute_cm(
     best_n    = max(ns) if ns else 0                # Best = highest UE count (more coverage)
     total_n   = sum(ns)                             # Keep total for CM7 calculation
 
+    # Most highly loaded regular cell (highest load metrics)
+    most_loaded_load = max(loads) if loads else 0.0
+    most_loaded_lpu = max(lpus) if lpus else 0.0
+    most_loaded_n = ns[loads.index(most_loaded_load)] if loads else 0
+
     
     if cm_type == CMType.CM1:
         return drone_load
 
     elif cm_type == CMType.CM2:
-        return best_load
+        return most_loaded_load
 
     elif cm_type == CMType.CM3:
-        return drone_load + best_load
+        return drone_load + most_loaded_load
 
     elif cm_type == CMType.CM4:
         return drone_lpu
 
     elif cm_type == CMType.CM5:
-        return best_lpu
+        return most_loaded_lpu
 
     elif cm_type == CMType.CM6:
-        return (drone_lpu + best_lpu) / 2.0
+        return (drone_lpu + most_loaded_lpu) / 2.0
 
     elif cm_type == CMType.CM7:
-        if drone_n + total_n == 0:
+        if drone_n + most_loaded_n == 0:
             return 0.0
 
-        # weighted neighbour LPU
-        weighted_neigh_lpu = (
-            sum(n * l for n, l in zip(ns, lpus)) / total_n
-            if total_n > 0 else 0.0
-        )
-
+        # Most highly loaded regular cell with weight equal to number of assigned UEs
         return (
-            drone_n * drone_lpu + total_n * weighted_neigh_lpu
-        ) / (drone_n + total_n)
+            drone_n * drone_lpu + most_loaded_n * most_loaded_lpu
+        ) / (drone_n + most_loaded_n)
 
     raise ValueError(f"Unknown CM type: {cm_type}")
 
