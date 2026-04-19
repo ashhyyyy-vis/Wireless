@@ -288,6 +288,16 @@ def run_one(
                         state["x"], state["y"],
                         state.get("cm", 0.0),
                     ))
+                    
+                    # Verbose drone movement tracking
+                    if verbose and len(trajectory) > 1:
+                        prev = trajectory[-2]
+                        curr = trajectory[-1]
+                        moved = (curr[1] != prev[1] or curr[2] != prev[2])
+                        if moved:
+                            print(f"  t={sim_time:.1f}s: Drone moved to ({curr[1]:.1f},{curr[2]:.1f}), "
+                                  f"CM={curr[3]:.4f}, axis={state.get('axis','N/A')}, "
+                                  f"improved={state.get('improved', False)}")
                 # Update loads for CM computation
                 admission.update_loads()
                 

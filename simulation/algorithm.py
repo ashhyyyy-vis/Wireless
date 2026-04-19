@@ -62,6 +62,25 @@ def compute_cm(
         # --- Neighbour metrics (AVERAGED instead of max) ---
     neighbour_ids = network.neighbour_cell_ids_of_failing_site()
 
+    # --- Original averaging logic (commented out) ---
+    # loads = []
+    # lpus  = []
+    # ns    = []
+
+    # for cid in neighbour_ids:
+    #     cell = network.get_cell(cid)
+    #     if not cell.active:
+    #         continue
+
+    #     loads.append(admission.cell_load(cid))
+    #     lpus.append(admission.cell_load_per_ue(cid))
+    #     ns.append(admission.num_ues(cid))
+
+    # avg_load = sum(loads) / len(loads) if loads else 0.0
+    # avg_lpu  = sum(lpus) / len(lpus) if lpus else 0.0
+    # total_n  = sum(ns)
+
+    # --- New logic using absolute best values ---
     loads = []
     lpus  = []
     ns    = []
@@ -71,32 +90,38 @@ def compute_cm(
         if not cell.active:
             continue
 
-        loads.append(admission.cell_load(cid))
-        lpus.append(admission.cell_load_per_ue(cid))
-        ns.append(admission.num_ues(cid))
+        load_val = admission.cell_load(cid)
+        lpu_val = admission.cell_load_per_ue(cid)
+        n_val = admission.num_ues(cid)
 
-    avg_load = sum(loads) / len(loads) if loads else 0.0
-    avg_lpu  = sum(lpus) / len(lpus) if lpus else 0.0
-    total_n  = sum(ns)
+        loads.append(load_val)
+        lpus.append(lpu_val)
+        ns.append(n_val)
+
+    # Use absolute best (minimum for load metrics, maximum for UE count)
+    best_load = min(loads) if loads else 0.0        # Best = lowest load
+    best_lpu  = min(lpus) if lpus else 0.0          # Best = lowest load per UE
+    best_n    = max(ns) if ns else 0                # Best = highest UE count (more coverage)
+    total_n   = sum(ns)                             # Keep total for CM7 calculation
 
     
     if cm_type == CMType.CM1:
         return drone_load
 
     elif cm_type == CMType.CM2:
-        return avg_load
+        return best_load
 
     elif cm_type == CMType.CM3:
-        return drone_load + avg_load
+        return drone_load + best_load
 
     elif cm_type == CMType.CM4:
         return drone_lpu
 
     elif cm_type == CMType.CM5:
-        return avg_lpu
+        return best_lpu
 
     elif cm_type == CMType.CM6:
-        return (drone_lpu + avg_lpu) / 2.0
+        return (drone_lpu + best_lpu) / 2.0
 
     elif cm_type == CMType.CM7:
         if drone_n + total_n == 0:
