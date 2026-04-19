@@ -43,10 +43,10 @@ CTRL_OVERHEAD_KAPPA = 0.1      # fraction of BW for control signals
 # ---------------------------------------------------------------------------
 # Transmit powers
 # ---------------------------------------------------------------------------
-P_TX_BS_W = 20.0               # 20 W  (43 dBm)
+P_TX_BS_W = 20.0/3               # 20 W  (43 dBm)
 P_TX_BS_DBM = 10 * math.log10(P_TX_BS_W * 1e3)   # ≈ 43 dBm
 
-P_TX_DRONE_W = 20             # 20 W (33 dBm)
+P_TX_DRONE_W = 0.5       # 20 W (33 dBm)
 P_TX_DRONE_DBM = 10 * math.log10(P_TX_DRONE_W * 1e3)   # ≈ 33 dBm
 
 # ---------------------------------------------------------------------------

@@ -81,7 +81,7 @@ def run_all_scenarios(
     scenarios,
     out_file="results/all_scenarios_results.csv",
     n_runs=5,
-    lambda_val=8,
+    lambda_val=5,
     phase1=30,
     phase3=2 * 60,
     workers=None,

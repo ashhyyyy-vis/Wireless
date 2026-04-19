@@ -15,18 +15,18 @@ from simulation.algorithm import CMType
 # CONFIG
 # -----------------------------
 PHASE1 = 30 
-PHASE3 = 2 * 60
+PHASE3 = 120
 TOTAL  = PHASE1 + PHASE3
 
-LAMBDA = 8
-N_RUNS = 5
+LAMBDA =2.5 # calibrated for rural; adjust for urban as needed    
+N_RUNS = 3
 NUM_WORKERS = max(1, cpu_count() - 1)
 
 
 # -----------------------------
 # SCENARIO STRING (HARDCODE HERE)
 # -----------------------------
-SCENARIO = "DU-100-60-4"
+SCENARIO = "RU-0-60-25"
 
 
 # -----------------------------
@@ -113,6 +113,7 @@ def run_batch(mode, env, cx, cy, rho, cm=None):
 # MAIN
 # -----------------------------
 if __name__ == "__main__":
+    np.random.seed(42)
     start=time.time()
 
     env, cx, cy, rho = parse_scenario(SCENARIO)

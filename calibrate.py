@@ -9,7 +9,7 @@ from run_simulation import run_one
 
 ENV = "urban"
 # Test range from 3 to 12 with 0.25 increments for post-disaster conditions
-LAMBDAS=[round(3 + i*0.25, 2) for i in range(int((12-3)/0.25) + 1)]  # 3.0, 3.25, 3.5, ..., 12.0
+LAMBDAS=[round(1 + i*0.25, 2) for i in range(int((12-3)/0.25) + 1)]  # 3.0, 3.25, 3.5, ..., 12.0
 
 TARGET_CSR = 0.85  # Target CSR for failed site scenario (lower than healthy 98%)
 

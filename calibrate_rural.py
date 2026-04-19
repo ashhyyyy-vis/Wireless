@@ -8,7 +8,7 @@ import numpy as np
 from run_simulation import run_one
 
 ENV = "rural"
-LAMBDAS=[round(5 + i*0.05, 2) for i in range(int((8-5)/0.05) + 1)]  # 5.0, 5.05, 5.1, ..., 8.0
+LAMBDAS=[round(1 + i*0.25, 2) for i in range(int((6-1)/0.25) + 1)]  # 1.0, 1.25, 1.5, ..., 6.0
 
 print(f"Calibrating lambda for {ENV} environment...")
 print(f"{'Lambda':<10} {'CSR':<10}")
@@ -18,8 +18,8 @@ for l in LAMBDAS:
     res = run_one(
         env=ENV,
         mode="no_drone",
-        sim_duration_s=1200,
-        phase2_start_s=99999,
+        sim_duration_s=1800,
+        phase2_start_s=300,
         seed=42,
         lambda_override=l,
         verbose=False
