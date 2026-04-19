@@ -77,6 +77,44 @@ def _run_batch(mode, env, cx, cy, rho, cm, n_runs, workers, total, phase1, lam):
 # -----------------------------
 # PUBLIC FUNCTION
 # -----------------------------
+def _write_scenario_result(scenario, scenario_results, out_file):
+    """
+    Write a single scenario's results to CSV file.
+    
+    Args:
+        scenario (str): Scenario identifier
+        scenario_results (dict): Results for all modes of this scenario
+        out_file (str): Output CSV path
+    """
+    import os
+    
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(out_file), exist_ok=True)
+    
+    # Check if file exists to decide whether to write header
+    file_exists = os.path.exists(out_file)
+    
+    # Prepare CSV headers
+    headers = ["scenario", "no_drone", "static_drone"] + [f"CM{i}" for i in range(1, 8)]
+    
+    with open(out_file, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=headers)
+        
+        # Write header only if file is new
+        if not file_exists:
+            writer.writeheader()
+
+        # Prepare row for this scenario
+        row = {"scenario": scenario}
+        
+        # Add all metrics to row
+        for metric_name in headers[1:]:  # Skip scenario column
+            row[metric_name] = f"{scenario_results.get(metric_name, 0.0):.6f}"
+        
+        writer.writerow(row)
+        print(f"Scenario {scenario} results appended to {out_file}")
+
+
 def run_all_scenarios(
     scenarios,
     out_file="results/all_scenarios_results.csv",
@@ -87,7 +125,7 @@ def run_all_scenarios(
     workers=None,
 ):
     """
-    Run all scenarios and save results to CSV.
+    Run all scenarios and save results to CSV after each scenario completion.
 
     Args:
         scenarios (list[str]): List like ["DU-100-60-4", ...]
@@ -114,6 +152,9 @@ def run_all_scenarios(
 
         env, cx, cy, rho = parse_scenario(scenario)
 
+        # Collect results for this scenario
+        scenario_results = {}
+
         # Baselines
         for mode in ["no_drone", "static_drone"]:
             res = _run_batch(
@@ -126,6 +167,7 @@ def run_all_scenarios(
                 lam=lambda_val
             )
             all_results.append({"scenario": scenario, **res})
+            scenario_results[res["cm"]] = res["mean_csr"]
 
         # CM metrics
         for cm in CMType:
@@ -139,42 +181,10 @@ def run_all_scenarios(
                 lam=lambda_val
             )
             all_results.append({"scenario": scenario, **res})
+            scenario_results[res["cm"]] = res["mean_csr"]
 
-    # Save CSV (append mode) - one row per scenario
-    import os
-    os.makedirs(os.path.dirname(out_file), exist_ok=True)
-    
-    # Check if file exists to decide whether to write header
-    file_exists = os.path.exists(out_file)
-    
-    # Group results by scenario
-    scenario_results = {}
-    for r in all_results:
-        scenario = r["scenario"]
-        if scenario not in scenario_results:
-            scenario_results[scenario] = {}
-        scenario_results[scenario][r["cm"]] = r["mean_csr"]
-    
-    # Prepare CSV headers
-    headers = ["scenario", "no_drone", "static_drone"] + [f"CM{i}" for i in range(1, 8)]
-    
-    with open(out_file, "a", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=headers)
-        
-        # Write header only if file is new
-        if not file_exists:
-            writer.writeheader()
+        # Write this scenario's results immediately
+        _write_scenario_result(scenario, scenario_results, out_file)
 
-        # Write one row per scenario
-        for scenario, metrics in scenario_results.items():
-            row = {"scenario": scenario}
-            
-            # Add all metrics to row
-            for metric_name in headers[1:]:  # Skip scenario column
-                row[metric_name] = f"{metrics.get(metric_name, 0.0):.6f}"
-            
-            writer.writerow(row)
-
-    print(f"\nAppended -> {out_file}")
-
+    print(f"\nAll scenarios completed. Results in {out_file}")
     return all_results
