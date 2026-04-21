@@ -91,6 +91,18 @@ Generates high-fidelity convergence data for a single scenario.
 
 ---
 
+## 8. Lambda Calibration (No-Drone) (`calibrate_no_drone.py`)
+Establish baseline network performance for a healthy network.
+
+* **Usage**:
+  ```bash
+  python3 calibrate_no_drone.py --scenario <ID> --start <val> --end <val> --steps <n>
+  # Example: python3 calibrate_no_drone.py --scenario DU-0-0-0 --start 2.0 --end 8.0
+  ```
+* **Output**: Calibration data in `results/lambda_calibration_<scenario>.csv`.
+
+---
+
 ## Common Arguments & Defaults
 - **Seed**: All scripts are standardized to use a base seed of `100`.
 - **Lambda**: Scripts default to the values in `simulation/config.py` unless overridden by `--lambda_`.

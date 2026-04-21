@@ -9,14 +9,18 @@ from run_simulation import run_one
 # Add current directory to path
 sys.path.append(os.getcwd())
 
+from kholo import parse_scenario
+
 def run_calib_job(args):
-    env, lambda_val, seed, duration = args
+    scenario, lambda_val, seed, duration = args
+    env, cx, cy, rho = parse_scenario(scenario)
     
     # We run in 'no_drone' mode. 
-    # To calibrate healthy network, we use a very late phase2_start.
-    # To calibrate degraded network, we use a standard phase2_start.
     res = run_one(
         env=env,
+        hotspot_cx=cx,
+        hotspot_cy=cy,
+        rho=rho,
         mode="no_drone",
         seed=seed,
         lambda_override=lambda_val,
@@ -26,9 +30,11 @@ def run_calib_job(args):
     )
     return res["final_csr"]
 
-def calibrate_lambda(env="urban", start=1.0, end=10.0, steps=10, runs=5, duration=1800.0):
+def calibrate_lambda(scenario="DU-0-0-0", start=1.0, end=10.0, steps=10, runs=5, duration=1800.0):
+    env, _, _, _ = parse_scenario(scenario)
     print("=" * 60)
-    print(f"Lambda Calibration (No-Drone, Healthy Network) | Env: {env}")
+    print(f"Lambda Calibration (No-Drone, Healthy Network)")
+    print(f"Scenario: {scenario} (Env: {env})")
     print(f"Range: [{start}, {end}] | Steps: {steps} | Runs per Step: {runs}")
     print("=" * 60)
     
@@ -39,7 +45,7 @@ def calibrate_lambda(env="urban", start=1.0, end=10.0, steps=10, runs=5, duratio
     print("-" * 60)
 
     for lam in lambdas:
-        jobs = [(env, lam, 100 + i, duration) for i in range(runs)]
+        jobs = [(scenario, lam, 100 + i, duration) for i in range(runs)]
         
         workers = min(cpu_count(), runs)
         with Pool(workers) as p:
@@ -57,7 +63,7 @@ def calibrate_lambda(env="urban", start=1.0, end=10.0, steps=10, runs=5, duratio
 
     # Save to results
     os.makedirs("results", exist_ok=True)
-    out_file = f"results/lambda_calibration_{env}.csv"
+    out_file = f"results/lambda_calibration_{scenario}.csv"
     with open(out_file, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["lambda", "mean_csr", "std_csr"])
         writer.writeheader()
@@ -68,7 +74,7 @@ def calibrate_lambda(env="urban", start=1.0, end=10.0, steps=10, runs=5, duratio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Lambda Calibration (No-Drone)")
-    parser.add_argument("--env", choices=["urban", "rural"], default="urban")
+    parser.add_argument("--scenario", default="DU-0-0-0", help="Scenario string (e.g. DU-100-60-4)")
     parser.add_argument("--start", type=float, default=1.0)
     parser.add_argument("--end", type=float, default=10.0)
     parser.add_argument("--steps", type=int, default=10)
@@ -78,7 +84,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     calibrate_lambda(
-        env=args.env, 
+        scenario=args.scenario, 
         start=args.start, 
         end=args.end, 
         steps=args.steps, 
