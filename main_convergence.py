@@ -10,6 +10,8 @@ from kholo import parse_scenario
 # Add current directory to path
 sys.path.append(os.getcwd())
 
+import time as wall_time
+
 def _run_single(args):
     """Worker for parallel simulation runs."""
     scenario, mode, lambda_val, seed, drone_delay = args
@@ -21,6 +23,7 @@ def _run_single(args):
     phase1 = 30.0
     duration = 3600.0  # 1 hour to ensure convergence
     
+    t_start = wall_time.time()
     res = run_one(
         env=env,
         hotspot_cx=cx,
@@ -35,6 +38,9 @@ def _run_single(args):
         drone_delay_s=drone_delay,
         verbose=False,
     )
+    t_end = wall_time.time()
+    
+    print(f"  [Job Complete] Scenario: {scenario:15} | Seed: {seed} | Time: {t_end - t_start:5.2f}s")
 
     return res["csr_series"]
 

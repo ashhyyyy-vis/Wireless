@@ -1,0 +1,7 @@
+scenario,convergence_time_s,final_csr,csv_path
+DU-0-0-2,3600.870120762889,0.6294145329072027,results/convergence_algorithm_DU-0-0-2.csv
+DU-0-0-8,3600.870120762889,0.5794566591845001,results/convergence_algorithm_DU-0-0-8.csv
+DU-100-60-2,3600.870120762889,0.6400767687571765,results/convergence_algorithm_DU-100-60-2.csv
+DU-100-60-8,3600.870120762889,0.5886934294672828,results/convergence_algorithm_DU-100-60-8.csv
+DU-200-60-2,3600.870120762889,0.6381268993460838,results/convergence_algorithm_DU-200-60-2.csv
+DU-200-60-8,3600.870120762889,0.6099687685210022,results/convergence_algorithm_DU-200-60-8.csv
