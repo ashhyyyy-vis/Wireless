@@ -202,6 +202,7 @@ class DronePositioningAlgorithm:
         self._direction: float = +1.0        # +1 or -1
         self._prev_cm: Optional[float] = None
         self._reversed_this_axis: bool = False
+        self.steps_taken = 0
 
         # Trajectory log: list of (x, y, cm) tuples
         self.trajectory = []
@@ -283,6 +284,8 @@ class DronePositioningAlgorithm:
         else:
             new_y = self.drone.y + delta
             self.drone.y = max(self.y_bounds[0], min(self.y_bounds[1], new_y))
+        
+        self.steps_taken += 1
 
     def _switch_axis(self) -> None:
         """
@@ -333,6 +336,8 @@ class EnergyAwarePositioningAlgorithm(DronePositioningAlgorithm):
         self.energy_cost = energy_cost
         self.alpha = alpha
         self.epsilon = epsilon
+        self._consecutive_failures = 0
+        self._stopped = False
 
     def step_algorithm(self) -> Dict:
         """
@@ -350,32 +355,52 @@ class EnergyAwarePositioningAlgorithm(DronePositioningAlgorithm):
         )
 
         if self._prev_cm is None:
-            # First step: just record, no move yet
+            # First step: record position, but don't move yet
             self._prev_cm = cm_now
             self.trajectory.append((self.drone.x, self.drone.y, cm_now))
             return {"x": self.drone.x, "y": self.drone.y, "cm": cm_now}
 
-        # Gain = CM_old - CM_new (improvement is positive)
+        # Gain = CM_old - CM_now (improvement is positive)
         gain = self._prev_cm - cm_now
         threshold = self.alpha * self.energy_cost + self.epsilon
         
-        # Decision: is the gain worth the energy cost?
+        # Decision: is the gain from the PREVIOUS move worth the energy cost?
         improved = gain > threshold
 
         if improved:
-            # Good move — keep going in the same direction
+            # Good move — reset failure counter and keep going
+            self._consecutive_failures = 0
             self._reversed_this_axis = False
+            self._stopped = False
         else:
+            # Bad move or insufficient gain — UNDO the move
+            # Move back 1 step
+            reverse_delta = -1.0 * self._direction * self.step
+            if self._axis == Axis.X:
+                self.drone.x += reverse_delta
+            else:
+                self.drone.y += reverse_delta
+            self.steps_taken += 1  # Spent energy returning to safety
+            
+            # Logic to decide next attempt
             if not self._reversed_this_axis:
-                # First degradation (or insufficient gain) on this axis → reverse
+                # Try reversing direction
                 self._direction *= -1.0
                 self._reversed_this_axis = True
+                self._consecutive_failures += 1
             else:
-                # Degraded again after reversing → switch axis
+                # Reversing also failed or was insufficient -> switch axis
                 self._switch_axis()
+                self._consecutive_failures += 1
+            
+            # If we've failed 4 times (tried both directions on both axes), stop
+            if self._consecutive_failures >= 4:
+                self._stopped = True
 
-        # Execute the move
-        self._move()
+        # Only move if not stopped
+        if not self._stopped:
+            self._move()
+
         self._prev_cm = cm_now
         self.trajectory.append((self.drone.x, self.drone.y, cm_now))
 
@@ -387,5 +412,6 @@ class EnergyAwarePositioningAlgorithm(DronePositioningAlgorithm):
             "direction": self._direction,
             "improved": improved,
             "gain":     gain,
-            "threshold": threshold
+            "threshold": threshold,
+            "stopped":  self._stopped
         }

@@ -4,6 +4,7 @@ import numpy as np
 from multiprocessing import Pool, cpu_count
 
 from run_simulation import run_one
+from simulation.config import LAMBDA_ARRIVAL
 from simulation.algorithm import CMType
 
 
@@ -50,7 +51,7 @@ def _run_job(args):
         verbose=False,
     )
 
-    return result["final_csr"]
+    return result["final_csr"], result["steps_taken"]
 
 
 # -----------------------------
@@ -65,12 +66,16 @@ def _run_batch(mode, env, cx, cy, rho, cm, n_runs, workers, total, phase1, lam):
     ]
 
     with Pool(workers) as p:
-        vals = p.map(_run_job, jobs)
+        results = p.map(_run_job, jobs)
+    
+    csrs = [r[0] for r in results]
+    steps = [r[1] for r in results]
 
     return {
         "cm": name,
-        "mean_csr": float(np.mean(vals)),
-        "std_csr": float(np.std(vals)),
+        "mean_csr": float(np.mean(csrs)),
+        "std_csr": float(np.std(csrs)),
+        "mean_steps": float(np.mean(steps)),
     }
 
 
@@ -95,7 +100,7 @@ def _write_scenario_result(scenario, scenario_results, out_file):
     file_exists = os.path.exists(out_file)
     
     # Prepare CSV headers
-    headers = ["scenario", "no_drone", "static_drone"] + [f"CM{i}" for i in range(1, 8)]
+    headers = ["scenario", "no_drone", "static_drone"] + [f"CM{i}" for i in range(1, 8)] + ["Energy_CM7", "Energy_Steps"]
     
     with open(out_file, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=headers)
@@ -119,7 +124,7 @@ def run_all_scenarios(
     scenarios,
     out_file="results/all_scenarios_results.csv",
     n_runs=5,
-    lambda_val=5,
+    lambda_val=None,
     phase1=30,
     phase3=2 * 60,
     workers=None,
@@ -151,6 +156,7 @@ def run_all_scenarios(
         print("=" * 60)
 
         env, cx, cy, rho = parse_scenario(scenario)
+        current_lambda = lambda_val if lambda_val is not None else LAMBDA_ARRIVAL[env]
 
         # Collect results for this scenario
         scenario_results = {}
@@ -164,12 +170,11 @@ def run_all_scenarios(
                 workers=workers,
                 total=total,
                 phase1=phase1,
-                lam=lambda_val
+                lam=current_lambda
             )
             all_results.append({"scenario": scenario, **res})
             scenario_results[res["cm"]] = res["mean_csr"]
-
-        # CM metrics
+        # CM metrics (Legacy)
         for cm in CMType:
             res = _run_batch(
                 "algorithm", env, cx, cy, rho,
@@ -178,10 +183,24 @@ def run_all_scenarios(
                 workers=workers,
                 total=total,
                 phase1=phase1,
-                lam=lambda_val
+                lam=current_lambda
             )
             all_results.append({"scenario": scenario, **res})
             scenario_results[res["cm"]] = res["mean_csr"]
+
+        # Energy Aware CM7
+        res_energy = _run_batch(
+            "energy_algorithm", env, cx, cy, rho,
+            cm=CMType.CM7,
+            n_runs=n_runs,
+            workers=workers,
+            total=total,
+            phase1=phase1,
+            lam=current_lambda
+        )
+        all_results.append({"scenario": scenario, **res_energy})
+        scenario_results["Energy_CM7"] = res_energy["mean_csr"]
+        scenario_results["Energy_Steps"] = res_energy["mean_steps"]
 
         # Write this scenario's results immediately
         _write_scenario_result(scenario, scenario_results, out_file)

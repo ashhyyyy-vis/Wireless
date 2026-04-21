@@ -361,6 +361,7 @@ def run_one(
         "rho":        rho,
         "hotspot_cx": hotspot_cx,
         "hotspot_cy": hotspot_cy,
+        "steps_taken": algo.steps_taken if algo else 0
     }
 
 
@@ -400,6 +401,7 @@ def run_scenario(
     all_final_csr = []
     all_series = []
     all_traj = []
+    all_steps = []
 
     for run in range(n_runs):
         if verbose:
@@ -418,10 +420,12 @@ def run_scenario(
         all_final_csr.append(result["final_csr"])
         all_series.append(result["csr_series"])
         all_traj.extend(result["trajectory"])
+        all_steps.append(result["steps_taken"])
 
     return {
         "mean_csr": float(np.mean(all_final_csr)),
         "std_csr":  float(np.std(all_final_csr)),
+        "mean_steps": float(np.mean(all_steps)),
         "all_final_csr": all_final_csr,
         "trajectory": all_traj,
         "env": env, "rho": rho, "mode": mode,

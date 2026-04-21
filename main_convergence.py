@@ -1,54 +1,26 @@
-from run_simulation import run_one
-from convergence import run_avg_csr, save_timeseries_csv
-import matplotlib.pyplot as plt
-import math
+import os
+import sys
+import csv
 import numpy as np
-
-def parse_scenario(s: str):
-    env_code, d, phi, rho = s.split("-")
-
-    env_map = {
-        "DU": "urban",
-        "RU": "rural",
-    }
-
-    env = env_map[env_code]
-
-    d = float(d)
-    phi_deg = float(phi)
-    rho = float(rho)
-
-    phi = math.radians(phi_deg)
-
-    cx = d * math.cos(phi)
-    cy = d * math.sin(phi)
-
-    return env, cx, cy, rho, d, phi_deg
-
-def label_scenario(env, d, phi_deg):
-    if d == 0:
-        return "Failing Site"
-
-    if env == "urban":
-        if phi_deg == 0:
-            return "A"
-        elif phi_deg == 60:
-            return "B"
-
-    else:  # rural
-        if phi_deg == 0:
-            return "C"
-        elif phi_deg == 60:
-            return "D"
-
-    return f"{d}-{phi_deg}"  # fallback
-
 from multiprocessing import Pool, cpu_count
+from run_simulation import run_one
+from simulation.config import LAMBDA_ARRIVAL
+from kholo import parse_scenario
 
+# Add current directory to path
+sys.path.append(os.getcwd())
 
 def _run_single(args):
-    env, cx, cy, rho, mode, lambda_val, seed, drone_delay = args
-
+    """Worker for parallel simulation runs."""
+    scenario, mode, lambda_val, seed, drone_delay = args
+    env, cx, cy, rho = parse_scenario(scenario)
+    
+    # We use a standard duration for convergence checks
+    # 30s warm up + 1800s Phase 1 + 3600s Phase 3
+    # Or just use relative timings from config
+    phase1 = 30.0
+    duration = 3600.0  # 1 hour to ensure convergence
+    
     res = run_one(
         env=env,
         hotspot_cx=cx,
@@ -57,124 +29,73 @@ def _run_single(args):
         mode=mode,
         seed=seed,
         lambda_override=lambda_val,
-        sim_duration_s=30*60 + 2*3600,
-        phase2_start_s=30*60,
+        sim_duration_s=phase1 + duration,
+        phase2_start_s=phase1,
+        phase3_start_s=phase1,
         drone_delay_s=drone_delay,
         verbose=False,
     )
 
     return res["csr_series"]
 
-def run_avg_csr(
-    env,
-    cx,
-    cy,
-    rho,
-    mode="algorithm",
-    lambda_val=None,
-    drone_delay_s=0.0,
-    n_runs=5,
-    workers=None,
-):
-    workers = workers or min(cpu_count(), n_runs)
-
+def generate_convergence_data(scenario, mode="algorithm", n_runs=5, lambda_val=None, drone_delay_s=0.0):
+    """Runs multiple simulations and averages the CSR time series."""
+    env, _, _, _ = parse_scenario(scenario)
+    lam = lambda_val if lambda_val is not None else LAMBDA_ARRIVAL[env]
+    
+    print(f"\n>>> Generating Convergence Data (Scenario={scenario}, Mode={mode}, Lambda={lam})")
+    
     jobs = [
-        (env, cx, cy, rho, mode, lambda_val, 42 + i, drone_delay_s)
+        (scenario, mode, lam, 100 + i, drone_delay_s)
         for i in range(n_runs)
     ]
-
+    
+    workers = min(cpu_count(), n_runs)
     with Pool(workers) as p:
         all_series = p.map(_run_single, jobs)
-
-    # --- averaging focusing on drone improvement (exclude failure drop) ---
+    
+    # Align and average
     times = [t for t, _ in all_series[0]]
-
     avg_csr = []
+    
     for i in range(len(times)):
-        vals = [run[i][1] for run in all_series if i >= 1800 and i < len(run)] # exclude failure drop
-        if vals:
-            avg_csr.append(np.mean(vals))
-        else:
-            avg_csr.append(np.nan)
-
-    return times, avg_csr
-
-
-def generate_convergence_curves_from_list(
-    scenarios,
-    lambda_val,
-    drone_delay_s=0.0,
-):
-    results = {}
-
-    for s in scenarios:
-        env, cx, cy, rho, d, phi_deg = parse_scenario(s)
-
-        label = label_scenario(env, d, phi_deg)
-
-        print(f"\n>> {label} ({s})")
-
-        t, csr = run_avg_csr(
-            env=env,
-            cx=cx,
-            cy=cy,
-            rho=rho,
-            lambda_val=lambda_val,
-            drone_delay_s=drone_delay_s,
-        )
-        save_timeseries_csv(label, t, csr)
-        results[label] = (t, csr)
-
-    return results
-
-def plot_convergence(results, title="", drone_delay_s=600):
-    # Filter out NaN values for clean plotting
-    filtered_results = {}
-    for name, (t, csr) in results.items():
-        # Only plot from drone activation onward
-        drone_activation_time = 1800 + drone_delay_s
-        valid_indices = [i for i, time_val in enumerate(t) 
-                        if time_val >= drone_activation_time and not np.isnan(csr[i])]
-        
-        if valid_indices:
-            filtered_times = [t[i] for i in valid_indices]
-            filtered_csr = [csr[i] for i in valid_indices]
-            filtered_results[name] = (filtered_times, filtered_csr)
-
-    # Create plot with drone activation marker
-    plt.figure(figsize=(12, 8))
+        vals = [run[i][1] for run in all_series if i < len(run)]
+        avg_csr.append(np.mean(vals))
     
-    for name, (t, csr) in filtered_results.items():
-        plt.plot(t, csr, label=name, linewidth=2)
+    # Save to CSV
+    os.makedirs("results", exist_ok=True)
+    out_file = f"results/convergence_{mode}_{scenario}.csv"
+    with open(out_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["time", "csr"])
+        for t, c in zip(times, avg_csr):
+            writer.writerow([t, c])
     
-    # Add drone activation marker
-    drone_activation_time = 1800 + drone_delay_s
-    plt.axvline(x=drone_activation_time, color='green', linestyle='--', 
-                label=f'Drone Activation ({drone_delay_s}s delay)', alpha=0.7)
+    print(f"Convergence data saved to {out_file}")
     
-    plt.xlabel("Time (s)")
-    plt.ylabel("CSR")
-    plt.title(title)
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.show()
+    # Numerical finding: 
+    # Find when CSR stays within 0.1% of final value
+    final_val = avg_csr[-1]
+    conv_time = None
+    for i in range(len(times)-1, -1, -1):
+        if abs(avg_csr[i] - final_val) > 0.001 * final_val:
+            if i + 1 < len(times):
+                conv_time = times[i+1]
+            break
+    
+    if conv_time:
+        print(f"Stated Convergence reached at approx {conv_time:.1f}s")
+    
+    return out_file
 
 if __name__ == "__main__":
-
-    scenarios = [
-        "DU-0-0-2",
-        "DU-100-0-2",
-        "DU-100-60-2",
-    ]
-
-    # Drone delay: system stays in fail mode for this time before drone starts optimizing
-    drone_delay_s = 600  # 10 minutes delay after disaster
+    import argparse
+    parser = argparse.ArgumentParser(description="Convergence Data Generator")
+    parser.add_argument("--scenario", required=True, help="Scenario (e.g. DU-100-60-4)")
+    parser.add_argument("--mode", default="algorithm", choices=["algorithm", "energy_algorithm"])
+    parser.add_argument("--runs", type=int, default=5, help="Number of Monte Carlo trials")
+    parser.add_argument("--delay", type=float, default=0.0, help="Drone delay (s)")
     
-    results = generate_convergence_curves_from_list(
-        scenarios,
-        lambda_val=11,
-        drone_delay_s=drone_delay_s,
-    )
-
-    plot_convergence(results, f"Urban Convergence (rho=2, drone_delay={drone_delay_s}s)")
+    args = parser.parse_args()
+    
+    generate_convergence_data(args.scenario, args.mode, args.runs, drone_delay_s=args.delay)

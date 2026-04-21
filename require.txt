@@ -1,0 +1,13 @@
+1. Metric comparision
+    this mostly exists already but just to reiterate
+    1. Lambda tuning for urban and rural scenarios
+    2. a script to run all the scenarios and store the results
+2. Convergence
+    a script to check how long til csr converges
+3. energy aware
+    1. tuning scripts for a and epsilon
+    2. comparision in energy gain(i.e no of steps reduced from legacy algo)
+    3. csr difference
+    4. convergence with this algorithm(optional)
+
+(make sure config is the single source of truth for lambda a and epsilon, override should be possible but main scripts should grab it from only config)

@@ -2,34 +2,40 @@ import os
 import sys
 import argparse
 import numpy as np
+import csv
 
 # Add current directory to path
 sys.path.append(os.getcwd())
 
 from run_simulation import run_one
-from simulation.config import LAMBDA_ARRIVAL, ALGO_EPSILON
+from simulation.config import LAMBDA_ARRIVAL, ALGO_EPSILON, ALGO_ALPHA, ALGO_ENERGY_COST
 from simulation.algorithm import CMType
 from kholo import parse_scenario
 
-def tune_alpha(scenario, duration, a_start, a_end, a_steps):
+def run_tuning(scenario, mode, duration, start, end, steps):
     env, cx, cy, rho = parse_scenario(scenario)
     config_lambda = LAMBDA_ARRIVAL[env]
-    print(f"\n>>> Tuning Alpha (Scenario={scenario}, Environment={env}, Lambda={config_lambda}, Epsilon=0.0, Duration={duration}s)")
-    print("-" * 65)
-    print(f"{'Alpha':<15} | {'Energy Algo CSR':<18} | {'Legacy Algo CSR':<18}")
-    print("-" * 65)
     
-    alphas = np.linspace(a_start, a_end, a_steps)
-    best_csr = -1
-    best_val = None
+    print(f"\n>>> Tuning {mode.capitalize()} (Scenario={scenario}, Env={env})")
+    print(f">>> Duration={duration}s, Seed=100")
+    print("-" * 100)
+    header = f"{mode.capitalize():<12} | {'Energy CSR':<12} | {'Legacy CSR':<12} | {'Steps E':<10} | {'Steps L':<10} | {'Saved':<10}"
+    print(header)
+    print("-" * 100)
     
-    best_legacy_csr = 0
+    values = np.linspace(start, end, steps)
+    results = []
     
-    # We will use a short warm-up (30s) and then the defined duration for the disaster phase
+    # Timing constants
     phase1 = 30.0
     total_duration = phase1 + duration
 
-    for a in alphas:
+    for val in values:
+        # Determine parameter overrides
+        l_val = val if mode == "lambda" else config_lambda
+        a_val = val if mode == "alpha" else ALGO_ALPHA
+        e_val = val if mode == "epsilon" else ALGO_EPSILON
+        
         # Run legacy algorithm
         res_legacy = run_one(
             env=env,
@@ -40,14 +46,13 @@ def tune_alpha(scenario, duration, a_start, a_end, a_steps):
             sim_duration_s=total_duration,
             phase2_start_s=phase1,
             phase3_start_s=phase1,
-            lambda_override=config_lambda,
+            lambda_override=float(l_val),
             seed=100,
             verbose=False
         )
-        legacy_csr = res_legacy['final_csr']
         
-        # Run energy algorithm
-        res = run_one(
+        # Run energy-aware algorithm
+        res_energy = run_one(
             env=env,
             hotspot_cx=cx,
             hotspot_cy=cy,
@@ -56,115 +61,62 @@ def tune_alpha(scenario, duration, a_start, a_end, a_steps):
             sim_duration_s=total_duration,
             phase2_start_s=phase1,
             phase3_start_s=phase1,
-            lambda_override=config_lambda,
-            alpha_override=float(a),
-            epsilon_override=0.0,
+            lambda_override=float(l_val),
+            alpha_override=float(a_val),
+            epsilon_override=float(e_val),
             seed=100,
             verbose=False
         )
-        csr = res['final_csr']
-        print(f"{a:<15.4f} | {csr:<18.4f} | {legacy_csr:<18.4f}")
         
-        if csr > best_csr:
-            best_csr = csr
-            best_val = a
-            best_legacy_csr = legacy_csr
-            
-    print("-" * 65)
-    print(f"Best Alpha: {best_val:.4f} with Max CSR: {best_csr:.4f}")
-    
-    # Check drop against legacy algorithm
-    if best_legacy_csr - best_csr > 0.05:
-        print(f"\n[!] WARNING: The maximum CSR ({best_csr:.4f}) dropped significantly compared to the legacy algorithm ({best_legacy_csr:.4f})!")
-    else:
-        print(f"Check Passed! Energy-aware performance is close to or better than legacy ({best_legacy_csr:.4f}).")
-
-def tune_epsilon(scenario, duration, e_start, e_end, e_steps):
-    env, cx, cy, rho = parse_scenario(scenario)
-    config_lambda = LAMBDA_ARRIVAL[env]
-    print(f"\n>>> Tuning Epsilon (Scenario={scenario}, Environment={env}, Lambda={config_lambda}, Duration={duration}s)")
-    print("-" * 65)
-    print(f"{'Epsilon':<15} | {'Energy Algo CSR':<18} | {'Legacy Algo CSR':<18}")
-    print("-" * 65)
-    
-    epsilons = np.linspace(e_start, e_end, e_steps)
-    best_csr = -1
-    best_val = None
-    
-    best_legacy_csr = 0
-    
-    # We will use a short warm-up (30s) and then the defined duration for the disaster phase
-    phase1 = 30.0
-    total_duration = phase1 + duration
-
-    for e in epsilons:
-        # Run legacy algorithm (Should remain constant across epsilons since we fixed lambda)
-        res_legacy = run_one(
-            env=env,
-            hotspot_cx=cx,
-            hotspot_cy=cy,
-            rho=rho,
-            mode="algorithm",
-            sim_duration_s=total_duration,
-            phase2_start_s=phase1,
-            phase3_start_s=phase1,
-            lambda_override=config_lambda,
-            seed=100,
-            verbose=False
-        )
-        legacy_csr = res_legacy['final_csr']
-
-        # Run energy algorithm
-        res = run_one(
-            env=env,
-            hotspot_cx=cx,
-            hotspot_cy=cy,
-            rho=rho,
-            mode="energy_algorithm",
-            sim_duration_s=total_duration,
-            phase2_start_s=phase1,
-            phase3_start_s=phase1,
-            lambda_override=config_lambda,
-            epsilon_override=float(e),
-            seed=100,
-            verbose=False
-        )
-        csr = res['final_csr']
-        print(f"{e:<15.6f} | {csr:<18.4f} | {legacy_csr:<18.4f}")
+        c_e = res_energy['final_csr']
+        c_l = res_legacy['final_csr']
+        s_e = res_energy['steps_taken']
+        s_l = res_legacy['steps_taken']
+        saved = s_l - s_e
         
-        if csr > best_csr:
-            best_csr = csr
-            best_val = e
-            best_legacy_csr = legacy_csr
-            
-    print("-" * 65)
-    print(f"Best Epsilon: {best_val:.6f} with Max CSR: {best_csr:.4f}")
+        print(f"{val:<12.4f} | {c_e:<12.4f} | {c_l:<12.4f} | {s_e:<10} | {s_l:<10} | {saved:<10}")
+        
+        results.append({
+            mode: val,
+            "energy_csr": c_e,
+            "legacy_csr": c_l,
+            "steps_energy": s_e,
+            "steps_legacy": s_l,
+            "steps_saved": saved
+        })
+
+    print("-" * 100)
     
-    # Check drop against legacy algorithm
-    if best_legacy_csr - best_csr > 0.05:
-        print(f"\n[!] WARNING: The maximum CSR ({best_csr:.4f}) dropped significantly compared to the legacy algorithm ({best_legacy_csr:.4f})!")
-    else:
-        print(f"Check Passed! Energy-aware performance is close to or better than legacy ({best_legacy_csr:.4f}).")
+    # Save to CSV
+    os.makedirs("results", exist_ok=True)
+    out_file = f"results/tuning_{mode}_{scenario}.csv"
+    with open(out_file, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=results[0].keys())
+        writer.writeheader()
+        writer.writerows(results)
+    print(f"Results saved to {out_file}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Tuning script for Drone Positioning Algorithm")
-    parser.add_argument("--scenario", required=True, help="Scenario identifier (e.g., DU-100-60-4)")
-    parser.add_argument("--mode", choices=["alpha", "epsilon"], required=True, help="Tuning mode")
-    parser.add_argument("--duration", type=float, default=1800.0, help="Simulation duration (seconds)")
+    parser = argparse.ArgumentParser(description="Unified Tuning Script for Drone Positioning")
+    parser.add_argument("--scenario", required=True, help="Scenario (e.g. DU-100-60-4)")
+    parser.add_argument("--mode", choices=["lambda", "alpha", "epsilon"], required=True)
+    parser.add_argument("--duration", type=float, default=300.0, help="Phase 3 duration (s)")
     
-    # Alpha range
-    parser.add_argument("--a_start", type=float, default=0.5, help="Start value for alpha")
-    parser.add_argument("--a_end", type=float, default=5.0, help="End value for alpha")
-    parser.add_argument("--a_steps", type=int, default=5, help="Number of steps for alpha")
-    
-    # Epsilon range
-    parser.add_argument("--e_start", type=float, default=0.0, help="Start value for epsilon")
-    parser.add_argument("--e_end", type=float, default=0.005, help="End value for epsilon")
-    parser.add_argument("--e_steps", type=int, default=5, help="Number of steps for epsilon")
+    # Ranges
+    parser.add_argument("--start", type=float, help="Start value")
+    parser.add_argument("--end", type=float, help="End value")
+    parser.add_argument("--steps", type=int, default=5, help="Number of steps")
     
     args = parser.parse_args()
     
-    if args.mode == "alpha":
-        tune_alpha(args.scenario, args.duration, args.a_start, args.a_end, args.a_steps)
-    else:
-        tune_epsilon(args.scenario, args.duration, args.e_start, args.e_end, args.e_steps)
+    # Default ranges if not provided
+    defaults = {
+        "lambda": (2.0, 10.0),
+        "alpha": (1.0, 50.0),
+        "epsilon": (0.0, 0.05)
+    }
+    
+    start = args.start if args.start is not None else defaults[args.mode][0]
+    end = args.end if args.end is not None else defaults[args.mode][1]
+    
+    run_tuning(args.scenario, args.mode, args.duration, start, end, args.steps)
