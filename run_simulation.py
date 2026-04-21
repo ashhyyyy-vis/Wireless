@@ -32,13 +32,14 @@ from simulation.config import (
     CONTROL_INTERVAL_S, LAMBDA_ARRIVAL,
     HOTSPOT_RADIUS_M, FAILING_SITE_ID,
     DRONE_ALTITUDE_M,
+    ALGO_ENERGY_COST, ALGO_ALPHA, ALGO_EPSILON,
 )
 from simulation.network import Network
 from simulation.propagation import ShadowFadingService
 from simulation.traffic import TrafficGenerator, Hotspot, UE
 from simulation.resource import RadioEngine, AdmissionController, CSRTracker
 from simulation.drone import Drone
-from simulation.algorithm import DronePositioningAlgorithm, CMType
+from simulation.algorithm import DronePositioningAlgorithm, CMType, EnergyAwarePositioningAlgorithm
 from simulation import handover
 
 # ---------------------------------------------------------------------------
@@ -67,6 +68,9 @@ def run_one(
     drone_delay_s: float = 0.0,
     seed: int = 42,
     lambda_override: Optional[float] = None,
+    energy_cost_override: Optional[float] = None,
+    alpha_override: Optional[float] = None,
+    epsilon_override: Optional[float] = None,
     verbose: bool = False,
 ) -> Dict:
     """
@@ -119,6 +123,17 @@ def run_one(
             step_m=1.0,
             x_bounds=(-2 * isd, 2 * isd),
             y_bounds=(-2 * isd, 2 * isd),
+        )
+    elif mode == "energy_algorithm":
+        isd = network.isd
+        algo = EnergyAwarePositioningAlgorithm(
+            drone, network, admission, cm_type=cm_type,
+            step_m=1.0,
+            x_bounds=(-2 * isd, 2 * isd),
+            y_bounds=(-2 * isd, 2 * isd),
+            energy_cost=energy_cost_override if energy_cost_override is not None else ALGO_ENERGY_COST,
+            alpha=alpha_override if alpha_override is not None else ALGO_ALPHA,
+            epsilon=epsilon_override if epsilon_override is not None else ALGO_EPSILON,
         )
 
     # Output collectors
@@ -189,7 +204,7 @@ def run_one(
             hotspot.active = True
 
             # Activate drone (if using) - with delay
-            if mode in ("static_drone", "algorithm"):
+            if mode in ("static_drone", "algorithm", "energy_algorithm"):
                 fs = network.failing_site()
                 # Schedule drone activation after delay
                 drone_activation_time = sim_time + drone_delay_s
@@ -284,7 +299,7 @@ def run_one(
             if drone.active:
                 # Process handovers periodically
                 
-                if mode == "algorithm" and algo is not None:
+                if mode in ("algorithm", "energy_algorithm") and algo is not None:
                     state = algo.step_algorithm()
                     trajectory.append((
                         sim_time,
@@ -313,7 +328,7 @@ def run_one(
         # ==================================================================
         elif ev_type == EV_DRONE_ACTIVATE:
             x, y = payload
-            if mode in ("static_drone", "algorithm"):
+            if mode in ("static_drone", "algorithm", "energy_algorithm"):
                 drone.activate(x=x, y=y)
                 admission._allocations[drone.cell_id] = {}
                 push(sim_time + CONTROL_INTERVAL_S, EV_ALGORITHM, None)
@@ -485,7 +500,7 @@ def plot_results(results: List[Dict], out_dir: str = "results") -> None:
 
     for label, grp in groups.items():
         fig, ax = plt.subplots(figsize=(8, 4))
-        colours = {"no_drone": "#e74c3c", "static_drone": "#f39c12", "algorithm": "#27ae60"}
+        colours = {"no_drone": "#e74c3c", "static_drone": "#f39c12", "algorithm": "#27ae60", "energy_algorithm": "#3498db"}
         for r in grp:
             ax.bar(r["mode"], r["mean_csr"],
                    yerr=r["std_csr"], color=colours.get(r["mode"], "grey"),
@@ -523,7 +538,7 @@ if __name__ == "__main__":
     parser.add_argument("--lambda_", type=float, default=None,
                         help="Override arrival rate λ (calls/s)")
     parser.add_argument("--modes",  nargs="+",
-                        default=["no_drone", "static_drone", "algorithm"],
+                        default=["no_drone", "static_drone", "algorithm", "energy_algorithm"],
                         help="Which benchmark modes to run")
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()

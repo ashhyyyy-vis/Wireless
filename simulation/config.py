@@ -137,7 +137,7 @@ CALL_DURATION_MEAN_S = 120.0      # mean call duration (τ), exponential
 # Arrival rate λ (calls/s over the whole cluster area) — tuned per env.
 # Set so that healthy CSR ≈ 98 %.  Adjust during calibration.
 LAMBDA_ARRIVAL = {
-    "urban": 5,   # starting guess; calibrate in Phase I
+    "urban": 11,   # starting guess; calibrate in Phase I
     "rural": 1.3,
 }
 
@@ -163,6 +163,11 @@ DRONE_SPEED_MPS = 24.0 / 3.6     # 24 km/h → m/s  ≈ 6.67 m/s
 
 # Control interval = measurement + TTT (both 200 ms each)
 CONTROL_INTERVAL_S = MEASUREMENT_PERIOD_S + HANDOVER_TTT_S
+
+# Energy-aware algorithm parameters
+ALGO_ENERGY_COST = 0.01          # Energy cost per step (Energy)
+ALGO_ALPHA = 1.0                # Weighting factor (a)
+ALGO_EPSILON = 0.001            # Minimum improvement (ε)
 
 # ---------------------------------------------------------------------------
 # Simulation timing

@@ -18,7 +18,10 @@ from typing import Optional, Callable, Dict,Tuple
 from simulation.network import Network
 from simulation.drone import Drone
 from simulation.resource import AdmissionController
-from simulation.config import DRONE_STEP_M, CONTROL_INTERVAL_S
+from simulation.config import (
+    DRONE_STEP_M, CONTROL_INTERVAL_S,
+    ALGO_ENERGY_COST, ALGO_ALPHA, ALGO_EPSILON
+)
 
 
 # ---------------------------------------------------------------------------
@@ -296,3 +299,93 @@ class DronePositioningAlgorithm:
         self._direction = +1.0
         self._reversed_this_axis = False
         self._prev_cm = None   # reset comparison after axis switch
+
+
+class EnergyAwarePositioningAlgorithm(DronePositioningAlgorithm):
+    """
+    Energy-aware positioning algorithm.
+    Move only if: gain > a * Energy + ε
+    where gain = CM7_old - CM7_new
+    """
+
+    def __init__(
+        self,
+        drone: Drone,
+        network: Network,
+        admission: AdmissionController,
+        cm_type: CMType = CMType.CM7,
+        step_m: float = DRONE_STEP_M,
+        x_bounds: Tuple[float, float] = (-2000.0, 2000.0),
+        y_bounds: Tuple[float, float] = (-2000.0, 2000.0),
+        energy_cost: float = ALGO_ENERGY_COST,
+        alpha: float = ALGO_ALPHA,
+        epsilon: float = ALGO_EPSILON,
+    ) -> None:
+        """
+        Why use this function: Initializes the energy-aware positioning algorithm.
+
+        Args:
+            energy_cost (float): Energy cost per step (Energy).
+            alpha (float): Weighting factor (a).
+            epsilon (float): Minimum improvement (ε).
+        """
+        super().__init__(drone, network, admission, cm_type, step_m, x_bounds, y_bounds)
+        self.energy_cost = energy_cost
+        self.alpha = alpha
+        self.epsilon = epsilon
+
+    def step_algorithm(self) -> Dict:
+        """
+        Why use this function: Executes one iteration of the positioning cycle 
+        with energy-gated decision logic.
+
+        Returns:
+            Dict: Current state data for logging.
+        """
+        cm_now = compute_cm(
+            self.cm_type,
+            self.drone.cell_id,
+            self.network,
+            self.admission,
+        )
+
+        if self._prev_cm is None:
+            # First step: just record, no move yet
+            self._prev_cm = cm_now
+            self.trajectory.append((self.drone.x, self.drone.y, cm_now))
+            return {"x": self.drone.x, "y": self.drone.y, "cm": cm_now}
+
+        # Gain = CM_old - CM_new (improvement is positive)
+        gain = self._prev_cm - cm_now
+        threshold = self.alpha * self.energy_cost + self.epsilon
+        
+        # Decision: is the gain worth the energy cost?
+        improved = gain > threshold
+
+        if improved:
+            # Good move — keep going in the same direction
+            self._reversed_this_axis = False
+        else:
+            if not self._reversed_this_axis:
+                # First degradation (or insufficient gain) on this axis → reverse
+                self._direction *= -1.0
+                self._reversed_this_axis = True
+            else:
+                # Degraded again after reversing → switch axis
+                self._switch_axis()
+
+        # Execute the move
+        self._move()
+        self._prev_cm = cm_now
+        self.trajectory.append((self.drone.x, self.drone.y, cm_now))
+
+        return {
+            "x":        self.drone.x,
+            "y":        self.drone.y,
+            "cm":       cm_now,
+            "axis":     self._axis.name,
+            "direction": self._direction,
+            "improved": improved,
+            "gain":     gain,
+            "threshold": threshold
+        }
