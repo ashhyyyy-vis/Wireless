@@ -2,6 +2,7 @@ from run_simulation import run_one
 from convergence import run_avg_csr, save_timeseries_csv
 import matplotlib.pyplot as plt
 import math
+import numpy as np
 
 def parse_scenario(s: str):
     env_code, d, phi, rho = s.split("-")
@@ -46,7 +47,7 @@ from multiprocessing import Pool, cpu_count
 
 
 def _run_single(args):
-    env, cx, cy, rho, mode, lambda_val, seed = args
+    env, cx, cy, rho, mode, lambda_val, seed, drone_delay = args
 
     res = run_one(
         env=env,
@@ -58,6 +59,7 @@ def _run_single(args):
         lambda_override=lambda_val,
         sim_duration_s=30*60 + 2*3600,
         phase2_start_s=30*60,
+        drone_delay_s=drone_delay,
         verbose=False,
     )
 
@@ -70,26 +72,30 @@ def run_avg_csr(
     rho,
     mode="algorithm",
     lambda_val=None,
+    drone_delay_s=0.0,
     n_runs=5,
     workers=None,
 ):
     workers = workers or min(cpu_count(), n_runs)
 
     jobs = [
-        (env, cx, cy, rho, mode, lambda_val, 42 + i)
+        (env, cx, cy, rho, mode, lambda_val, 42 + i, drone_delay_s)
         for i in range(n_runs)
     ]
 
     with Pool(workers) as p:
         all_series = p.map(_run_single, jobs)
 
-    # --- averaging (same as before) ---
+    # --- averaging focusing on drone improvement (exclude failure drop) ---
     times = [t for t, _ in all_series[0]]
 
     avg_csr = []
     for i in range(len(times)):
-        vals = [run[i][1] for run in all_series if i < len(run)]
-        avg_csr.append(np.mean(vals))
+        vals = [run[i][1] for run in all_series if i >= 1800 and i < len(run)] # exclude failure drop
+        if vals:
+            avg_csr.append(np.mean(vals))
+        else:
+            avg_csr.append(np.nan)
 
     return times, avg_csr
 
@@ -97,6 +103,7 @@ def run_avg_csr(
 def generate_convergence_curves_from_list(
     scenarios,
     lambda_val,
+    drone_delay_s=0.0,
 ):
     results = {}
 
@@ -113,22 +120,43 @@ def generate_convergence_curves_from_list(
             cy=cy,
             rho=rho,
             lambda_val=lambda_val,
+            drone_delay_s=drone_delay_s,
         )
         save_timeseries_csv(label, t, csr)
         results[label] = (t, csr)
 
     return results
 
-def plot_convergence(results, title=""):
-
+def plot_convergence(results, title="", drone_delay_s=600):
+    # Filter out NaN values for clean plotting
+    filtered_results = {}
     for name, (t, csr) in results.items():
-        plt.plot(t, csr, label=name)
+        # Only plot from drone activation onward
+        drone_activation_time = 1800 + drone_delay_s
+        valid_indices = [i for i, time_val in enumerate(t) 
+                        if time_val >= drone_activation_time and not np.isnan(csr[i])]
+        
+        if valid_indices:
+            filtered_times = [t[i] for i in valid_indices]
+            filtered_csr = [csr[i] for i in valid_indices]
+            filtered_results[name] = (filtered_times, filtered_csr)
 
+    # Create plot with drone activation marker
+    plt.figure(figsize=(12, 8))
+    
+    for name, (t, csr) in filtered_results.items():
+        plt.plot(t, csr, label=name, linewidth=2)
+    
+    # Add drone activation marker
+    drone_activation_time = 1800 + drone_delay_s
+    plt.axvline(x=drone_activation_time, color='green', linestyle='--', 
+                label=f'Drone Activation ({drone_delay_s}s delay)', alpha=0.7)
+    
     plt.xlabel("Time (s)")
     plt.ylabel("CSR")
     plt.title(title)
     plt.legend()
-    plt.grid()
+    plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
 
@@ -140,9 +168,13 @@ if __name__ == "__main__":
         "DU-100-60-2",
     ]
 
+    # Drone delay: system stays in fail mode for this time before drone starts optimizing
+    drone_delay_s = 600  # 10 minutes delay after disaster
+    
     results = generate_convergence_curves_from_list(
         scenarios,
         lambda_val=11,
+        drone_delay_s=drone_delay_s,
     )
 
-    plot_convergence(results, "Urban Convergence (ρ=2)")
+    plot_convergence(results, f"Urban Convergence (rho=2, drone_delay={drone_delay_s}s)")

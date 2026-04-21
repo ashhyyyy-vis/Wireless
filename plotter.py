@@ -62,7 +62,7 @@ def plot_heatmap(
 # -----------------------------
 if __name__ == "__main__":
     plot_heatmap(
-        "results/all_scenarios_results.csv",
+        "results/plot_maps.csv",
         title="CSR Heatmap (Original Order)",
         save_path="results/heatmap.png",
     )

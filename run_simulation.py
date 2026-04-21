@@ -47,6 +47,7 @@ from simulation import handover
 EV_ARRIVAL    = 0
 EV_DEPARTURE  = 1
 EV_ALGORITHM  = 2   # drone position update tick
+EV_DRONE_ACTIVATE = 3  # delayed drone activation
 
 
 # ---------------------------------------------------------------------------
@@ -62,6 +63,8 @@ def run_one(
     cm_type: CMType = CMType.CM7,
     sim_duration_s: float = PHASE1_DURATION_S + 4 * 3600,
     phase2_start_s: float = PHASE1_DURATION_S,
+    phase3_start_s: float = PHASE1_DURATION_S,
+    drone_delay_s: float = 0.0,
     seed: int = 42,
     lambda_override: Optional[float] = None,
     verbose: bool = False,
@@ -185,12 +188,12 @@ def run_one(
             # Activate hotspot
             hotspot.active = True
 
-            # Activate drone (if using)
+            # Activate drone (if using) - with delay
             if mode in ("static_drone", "algorithm"):
                 fs = network.failing_site()
-                drone.activate(x=fs.x, y=fs.y)
-                admission._allocations[drone.cell_id] = {}
-                push(sim_time + CONTROL_INTERVAL_S, EV_ALGORITHM, None)
+                # Schedule drone activation after delay
+                drone_activation_time = sim_time + drone_delay_s
+                push(drone_activation_time, EV_DRONE_ACTIVATE, (fs.x, fs.y))
 
         # ---- Periodic CSR snapshot (5-min rolling window) ----
         if sim_time - last_snapshot >= snapshot_interval and disaster_triggered:
@@ -306,6 +309,16 @@ def run_one(
                 if algo_event_counter % 4 == 0:  # Every 25 events = every 10 seconds
                     handover.process_handovers(sim_time, active_ues, radio, admission)
                 push(sim_time + CONTROL_INTERVAL_S, EV_ALGORITHM, None)
+
+        # ==================================================================
+        elif ev_type == EV_DRONE_ACTIVATE:
+            x, y = payload
+            if mode in ("static_drone", "algorithm"):
+                drone.activate(x=x, y=y)
+                admission._allocations[drone.cell_id] = {}
+                push(sim_time + CONTROL_INTERVAL_S, EV_ALGORITHM, None)
+                if verbose:
+                    print(f"  t={sim_time:.1f}s: Drone ACTIVATED at ({x:.1f},{y:.1f})")
 
     # ---------------------------------------------------------------------------
     # Compute final CSR: fraction of in-scope calls in the last
