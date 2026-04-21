@@ -1,0 +1,97 @@
+# Drone BS Positioning Simulation: Usage Instructions
+
+This document explains how to use the various scripts provided in the `choice_scarf` project.
+
+---
+
+## 1. Full Research Battery (`main.py`)
+Runs the complete set of scenarios (48 total) defined in the research paper.
+
+* **Run a specific Case** (1-6):
+  ```bash
+  python3 main.py <case_number>
+  # Example: python3 main.py 2
+  ```
+* **Run all scenarios**:
+  ```bash
+  python3 main.py
+  ```
+* **Output**: Aggregated CSR results are saved to `results/all_scenarios_results.csv`.
+
+---
+
+## 2. Metric Comparison (`metric_comp.py`)
+Compares all 7 Control Metrics (CM1-CM7) against baselines for a specific scenario.
+
+* **Usage**:
+  ```bash
+  python3 metric_comp.py --scenario <ID> --lambda_ <val> --runs <n>
+  # Example: python3 metric_comp.py --scenario DU-100-60-4 --runs 5
+  ```
+* **Output**: Detailed results in `results/<scenario>_results.csv`.
+
+---
+
+## 3. Batch Convergence Analysis (`run_convergence.py`)
+Runs convergence analysis for the 6 representative cases to see how CSR stabilizes over time.
+
+* **Usage**:
+  ```bash
+  python3 run_convergence.py --mode [algorithm|energy_algorithm] --runs <n>
+  # Example: python3 run_convergence.py --mode algorithm
+  ```
+* **Output**: Summary in `results/convergence_summary_<mode>.csv` and time-series CSVs for each case.
+
+---
+
+## 4. Energy-Aware Comparison (`run_energy_comparison.py`)
+Evaluates the efficiency gains (steps saved) and CSR impact of the energy-aware algorithm.
+
+* **Usage**:
+  ```bash
+  python3 run_energy_comparison.py --runs <n>
+  # Example: python3 run_energy_comparison.py --runs 3
+  ```
+* **Output**: Comparative report in `results/energy_comparison_report.csv`.
+
+---
+
+## 5. Parameter Tuning (`tune_parameters.py`)
+Finds optimal values for Alpha, Epsilon, or Lambda via parameter sweeps.
+
+* **Usage**:
+  ```bash
+  python3 tune_parameters.py --scenario <ID> --mode [alpha|epsilon|lambda] --start <val> --end <val> --steps <n>
+  # Example: python3 tune_parameters.py --scenario DU-100-60-4 --mode alpha --start 1.0 --end 10.0
+  ```
+* **Output**: Results in `results/tuning_<mode>_<scenario>.csv`.
+
+---
+
+## 6. Lambda Calibration (`calibrate.py` / `calibrate_rural.py`)
+Finds the arrival rate (Lambda) that yields the target healthy CSR for Urban or Rural environments.
+
+* **Usage**:
+  ```bash
+  python3 calibrate.py          # For Urban
+  python3 calibrate_rural.py    # For Rural
+  ```
+* **Output**: Prints the recommended lambda to the terminal.
+
+---
+
+## 7. Single Scenario Convergence (`main_convergence.py`)
+Generates high-fidelity convergence data for a single scenario.
+
+* **Usage**:
+  ```bash
+  python3 main_convergence.py --scenario <ID> --mode <mode> --runs <n>
+  # Example: python3 main_convergence.py --scenario RU-0-0-50 --runs 10
+  ```
+
+---
+
+## Common Arguments & Defaults
+- **Seed**: All scripts are standardized to use a base seed of `100`.
+- **Lambda**: Scripts default to the values in `simulation/config.py` unless overridden by `--lambda_`.
+- **Results**: All output data is stored in the `./results/` directory.
