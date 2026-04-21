@@ -2,47 +2,116 @@
 Calibration script to find LAMBDA_ARRIVAL that yields target CSR in a FAILED SITE scenario.
 Tests no_drone mode with disaster to calibrate for realistic post-failure conditions.
 """
+import os
 import sys
-sys.path.insert(0, ".")
+import argparse
 import numpy as np
+import csv
+from multiprocessing import Pool, cpu_count
 from run_simulation import run_one
 
-ENV = "urban"
-# Test range from 3 to 12 with 0.25 increments for post-disaster conditions
-LAMBDAS=[round(1 + i*0.25, 2) for i in range(int((12-3)/0.25) + 1)]  # 3.0, 3.25, 3.5, ..., 12.0
+# Add current directory to path
+sys.path.append(os.getcwd())
 
-TARGET_CSR = 0.85  # Target CSR for failed site scenario (lower than healthy 98%)
+from kholo import parse_scenario
 
-print(f"Calibrating lambda for {ENV} environment (FAILED SITE scenario)...")
-print(f"Target CSR: {TARGET_CSR:.2f}")
-print(f"{'Lambda':<10} {'CSR':<10} {'Status':<15}")
-
-closest_lambda = None
-closest_diff = float('inf')
-
-for l in LAMBDAS:
-    # Run simulation with disaster (failed site)
+def run_calib_job(args):
+    scenario, lambda_val, seed, duration, phase2_start = args
+    env, cx, cy, rho = parse_scenario(scenario)
+    
+    # Run with disaster (failed site)
     res = run_one(
-        env=ENV,
+        env=env,
+        hotspot_cx=cx,
+        hotspot_cy=cy,
+        rho=rho,
         mode="no_drone",
-        sim_duration_s=1800,  # 30 minutes: 5min warmup + 25min post-disaster
-        phase2_start_s=300,    # Disaster at 5 minutes
-        seed=42,
-        lambda_override=l,
-        verbose=False
+        seed=seed,
+        lambda_override=lambda_val,
+        sim_duration_s=duration,
+        phase2_start_s=phase2_start,    # Disaster triggers during simulation
+        verbose=False,
     )
-    
-    csr = res['final_csr']
-    diff = abs(csr - TARGET_CSR)
-    
-    if diff < closest_diff:
-        closest_diff = diff
-        closest_lambda = l
-    
-    status = "CLOSEST" if l == closest_lambda else ""
-    print(f"{l:<10} {csr:<10.4f} {status:<15}")
+    return res["final_csr"]
 
-print(f"\n=== Calibration Results ===")
-print(f"Recommended lambda: {closest_lambda}")
-print(f"CSR at recommended lambda: {res['final_csr']:.4f}")
-print(f"Difference from target: {closest_diff:.4f}")
+def calibrate_lambda(scenario="DU-0-0-0", start=1.0, end=10.0, steps=10, runs=5, 
+                    duration=1800.0, phase2_start=300.0, target_csr=0.85):
+    env, _, _, _ = parse_scenario(scenario)
+    print("=" * 60)
+    print(f"Lambda Calibration (Failed Site Scenario)")
+    print(f"Scenario: {scenario} (Env: {env})")
+    print(f"Range: [{start}, {end}] | Steps: {steps} | Runs per Step: {runs}")
+    print(f"Target CSR: {target_csr:.2f} | Phase 2 starts at: {phase2_start}s")
+    print("=" * 60)
+    
+    lambdas = np.linspace(start, end, steps)
+    results = []
+    closest_lambda = None
+    closest_diff = float('inf')
+
+    print(f"{'Lambda':<10} | {'Mean CSR':<12} | {'Std Dev':<10} | {'Status':<15}")
+    print("-" * 60)
+
+    for lam in lambdas:
+        jobs = [(scenario, lam, 100 + i, duration, phase2_start) for i in range(runs)]
+        
+        workers = min(cpu_count(), runs)
+        with Pool(workers) as p:
+            csrs = p.map(run_calib_job, jobs)
+            
+        mean_csr = np.mean(csrs)
+        std_csr = np.std(csrs)
+        diff = abs(mean_csr - target_csr)
+        
+        if diff < closest_diff:
+            closest_diff = diff
+            closest_lambda = lam
+        
+        status = "CLOSEST" if lam == closest_lambda else ""
+        print(f"{lam:<10.4f} | {mean_csr:<12.4f} | {std_csr:<10.4f} | {status:<15}")
+        
+        results.append({
+            "lambda": float(lam),
+            "mean_csr": float(mean_csr),
+            "std_csr": float(std_csr),
+            "diff_from_target": float(diff)
+        })
+
+    # Save to results
+    os.makedirs("results", exist_ok=True)
+    out_file = f"results/lambda_calibration_failed_site_{scenario}.csv"
+    with open(out_file, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["lambda", "mean_csr", "std_csr", "diff_from_target"])
+        writer.writeheader()
+        writer.writerows(results)
+        
+    print("-" * 60)
+    print(f"Calibration data saved to {out_file}")
+    print(f"\n=== Calibration Results ===")
+    print(f"Recommended lambda: {closest_lambda:.4f}")
+    print(f"CSR at recommended lambda: {np.mean([r['mean_csr'] for r in results if abs(r['lambda'] - closest_lambda) < 0.001]):.4f}")
+    print(f"Difference from target: {closest_diff:.4f}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Lambda Calibration (Failed Site Scenario)")
+    parser.add_argument("--scenario", default="DU-0-0-0", help="Scenario string (e.g. DU-100-60-4)")
+    parser.add_argument("--start", type=float, default=1.0, help="Start lambda value")
+    parser.add_argument("--end", type=float, default=10.0, help="End lambda value")
+    parser.add_argument("--steps", type=int, default=10, help="Number of lambda steps")
+    parser.add_argument("--runs", type=int, default=5, help="Runs per lambda step")
+    parser.add_argument("--duration", type=float, default=1800.0, help="Simulation duration (seconds)")
+    parser.add_argument("--phase2-start", type=float, default=300.0, help="Phase 2 start time (seconds)")
+    parser.add_argument("--target-csr", type=float, default=0.85, help="Target CSR for failed site scenario")
+    
+    args = parser.parse_args()
+    
+    calibrate_lambda(
+        scenario=args.scenario, 
+        start=args.start, 
+        end=args.end, 
+        steps=args.steps, 
+        runs=args.runs, 
+        duration=args.duration,
+        phase2_start=args.phase2_start,
+        target_csr=args.target_csr
+    )
