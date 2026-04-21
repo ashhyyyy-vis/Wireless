@@ -12,7 +12,7 @@ from simulation.drone import Drone
 from simulation.config import BANDWIDTH_HZ, CTRL_OVERHEAD_KAPPA, MIN_BITRATE_MBPS
 import numpy as np
 
-rng = np.random.default_rng(42)
+rng = np.random.default_rng(100)
 net = Network("urban")
 hotspot = Hotspot(cx=200, cy=0, rho=8, active=True)
 shadow  = ShadowFadingService(12, "urban", rng)

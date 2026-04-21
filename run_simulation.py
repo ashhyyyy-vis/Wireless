@@ -66,7 +66,7 @@ def run_one(
     phase2_start_s: float = PHASE1_DURATION_S,
     phase3_start_s: float = PHASE1_DURATION_S,
     drone_delay_s: float = 0.0,
-    seed: int = 42,
+    seed: int = 100,
     lambda_override: Optional[float] = None,
     energy_cost_override: Optional[float] = None,
     alpha_override: Optional[float] = None,
@@ -413,7 +413,7 @@ def run_scenario(
             rho=rho,
             mode=mode,
             cm_type=cm_type,
-            seed=42 + run,
+            seed=100 + run,
             verbose=False,
             lambda_override=lambda_override,
         )

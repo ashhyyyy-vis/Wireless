@@ -9,7 +9,7 @@ from simulation.propagation import ShadowFadingService
 from simulation.traffic import TrafficGenerator, Hotspot, UE
 from simulation.resource import RadioEngine, AdmissionController
 
-rng = np.random.default_rng(42)
+rng = np.random.default_rng(100)
 net = Network("urban")
 
 # Pre-disaster scenario (all sites active)

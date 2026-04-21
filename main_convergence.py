@@ -38,7 +38,7 @@ def _run_single(args):
 
     return res["csr_series"]
 
-def generate_convergence_data(scenario, mode="algorithm", n_runs=5, lambda_val=None, drone_delay_s=0.0):
+def generate_convergence_data(scenario, mode="algorithm", n_runs=5, lambda_val=None, drone_delay_s=0.0, base_seed=100):
     """Runs multiple simulations and averages the CSR time series."""
     env, _, _, _ = parse_scenario(scenario)
     lam = lambda_val if lambda_val is not None else LAMBDA_ARRIVAL[env]
@@ -46,7 +46,7 @@ def generate_convergence_data(scenario, mode="algorithm", n_runs=5, lambda_val=N
     print(f"\n>>> Generating Convergence Data (Scenario={scenario}, Mode={mode}, Lambda={lam})")
     
     jobs = [
-        (scenario, mode, lam, 100 + i, drone_delay_s)
+        (scenario, mode, lam, base_seed + i, drone_delay_s)
         for i in range(n_runs)
     ]
     
@@ -83,10 +83,14 @@ def generate_convergence_data(scenario, mode="algorithm", n_runs=5, lambda_val=N
                 conv_time = times[i+1]
             break
     
-    if conv_time:
+    # If it never fluctuated more than 0.1% from the end, it converged from the start
+    if conv_time is None and times:
+        conv_time = times[0]
+
+    if conv_time is not None:
         print(f"Stated Convergence reached at approx {conv_time:.1f}s")
     
-    return out_file
+    return out_file, conv_time, final_val
 
 if __name__ == "__main__":
     import argparse
@@ -95,7 +99,8 @@ if __name__ == "__main__":
     parser.add_argument("--mode", default="algorithm", choices=["algorithm", "energy_algorithm"])
     parser.add_argument("--runs", type=int, default=5, help="Number of Monte Carlo trials")
     parser.add_argument("--delay", type=float, default=0.0, help="Drone delay (s)")
+    parser.add_argument("--seed", type=int, default=100, help="Base random seed")
     
     args = parser.parse_args()
     
-    generate_convergence_data(args.scenario, args.mode, args.runs, drone_delay_s=args.delay)
+    generate_convergence_data(args.scenario, args.mode, args.runs, drone_delay_s=args.delay, base_seed=args.seed)
