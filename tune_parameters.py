@@ -41,6 +41,7 @@ def tune_alpha(scenario, duration, a_start, a_end, a_steps):
             phase2_start_s=phase1,
             phase3_start_s=phase1,
             lambda_override=config_lambda,
+            seed=100,
             verbose=False
         )
         legacy_csr = res_legacy['final_csr']
@@ -58,6 +59,7 @@ def tune_alpha(scenario, duration, a_start, a_end, a_steps):
             lambda_override=config_lambda,
             alpha_override=float(a),
             epsilon_override=0.0,
+            seed=100,
             verbose=False
         )
         csr = res['final_csr']
@@ -107,6 +109,7 @@ def tune_epsilon(scenario, duration, e_start, e_end, e_steps):
             phase2_start_s=phase1,
             phase3_start_s=phase1,
             lambda_override=config_lambda,
+            seed=100,
             verbose=False
         )
         legacy_csr = res_legacy['final_csr']
@@ -123,6 +126,7 @@ def tune_epsilon(scenario, duration, e_start, e_end, e_steps):
             phase3_start_s=phase1,
             lambda_override=config_lambda,
             epsilon_override=float(e),
+            seed=100,
             verbose=False
         )
         csr = res['final_csr']
