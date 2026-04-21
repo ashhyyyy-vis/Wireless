@@ -342,10 +342,8 @@ class EnergyAwarePositioningAlgorithm(DronePositioningAlgorithm):
     def step_algorithm(self) -> Dict:
         """
         Why use this function: Executes one iteration of the positioning cycle 
-        with energy-gated decision logic.
-
-        Returns:
-            Dict: Current state data for logging.
+        with energy-gated decision logic. Matches the movement efficiency of 
+        the legacy algorithm (1 step per cycle).
         """
         cm_now = compute_cm(
             self.cm_type,
@@ -355,7 +353,6 @@ class EnergyAwarePositioningAlgorithm(DronePositioningAlgorithm):
         )
 
         if self._prev_cm is None:
-            # First step: record position, but don't move yet
             self._prev_cm = cm_now
             self.trajectory.append((self.drone.x, self.drone.y, cm_now))
             return {"x": self.drone.x, "y": self.drone.y, "cm": cm_now}
@@ -364,36 +361,26 @@ class EnergyAwarePositioningAlgorithm(DronePositioningAlgorithm):
         gain = self._prev_cm - cm_now
         threshold = self.alpha * self.energy_cost + self.epsilon
         
-        # Decision: is the gain from the PREVIOUS move worth the energy cost?
-        improved = gain > threshold
+        # Did the PREVIOUS move yield enough gain?
+        sufficient_gain = gain > threshold
 
-        if improved:
-            # Good move — reset failure counter and keep going
+        if sufficient_gain:
+            # Keep going
             self._consecutive_failures = 0
             self._reversed_this_axis = False
             self._stopped = False
         else:
-            # Bad move or insufficient gain — UNDO the move
-            # Move back 1 step
-            reverse_delta = -1.0 * self._direction * self.step
-            if self._axis == Axis.X:
-                self.drone.x += reverse_delta
-            else:
-                self.drone.y += reverse_delta
-            self.steps_taken += 1  # Spent energy returning to safety
-            
-            # Logic to decide next attempt
+            # Insufficient gain — reverse or switch axis
+            # Note: We don't "undo" in a separate step to save energy.
+            # We just change direction for the NEXT move, exactly like Legacy.
             if not self._reversed_this_axis:
-                # Try reversing direction
                 self._direction *= -1.0
                 self._reversed_this_axis = True
                 self._consecutive_failures += 1
             else:
-                # Reversing also failed or was insufficient -> switch axis
                 self._switch_axis()
                 self._consecutive_failures += 1
             
-            # If we've failed 4 times (tried both directions on both axes), stop
             if self._consecutive_failures >= 4:
                 self._stopped = True
 
@@ -410,7 +397,7 @@ class EnergyAwarePositioningAlgorithm(DronePositioningAlgorithm):
             "cm":       cm_now,
             "axis":     self._axis.name,
             "direction": self._direction,
-            "improved": improved,
+            "sufficient_gain": sufficient_gain,
             "gain":     gain,
             "threshold": threshold,
             "stopped":  self._stopped
