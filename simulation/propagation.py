@@ -19,6 +19,10 @@ from .config import (
     ISD,
 )
 
+# --- Pre-calculated constants for performance ---
+_F_GHZ = CARRIER_FREQ_HZ / 1e9
+_PL_CONST_20LOGF = 20.0 * math.log10(_F_GHZ)
+_FSPL_CONST = 20.0 * math.log10(4.0 * math.pi * CARRIER_FREQ_HZ / C_LIGHT)
 
 # ---------------------------------------------------------------------------
 # Helper: free-space path loss (dB)
@@ -38,7 +42,7 @@ def free_space_pl(dist_3d_m: float, freq_hz: float = CARRIER_FREQ_HZ) -> float:
     """
     if dist_3d_m < 1.0:
         dist_3d_m = 1.0
-    return 20.0 * math.log10(4.0 * math.pi * dist_3d_m * freq_hz / C_LIGHT)
+    return 20.0 * math.log10(dist_3d_m) + _FSPL_CONST
 
 
 # ---------------------------------------------------------------------------
@@ -196,14 +200,14 @@ def bs_path_loss(
         # UMa LoS  (3GPP TR 38.901 Table 7.4.1-1, formula 1)
         if d3d_m < 1.0:
             d3d_m = 1.0
-        pl_los = (28.0
-                  + 22.0 * math.log10(d3d_m)
-                  + 20.0 * math.log10(f_ghz))
+        
+        log_d3d = math.log10(d3d_m)
+        pl_los = 28.0 + 22.0 * log_d3d + _PL_CONST_20LOGF
 
         # UMa NLoS (Table 7.4.1-1, formula 2)
         pl_nlos_candidate = (13.54
-                             + 39.08 * math.log10(d3d_m)
-                             + 20.0 * math.log10(f_ghz)
+                             + 39.08 * log_d3d
+                             + _PL_CONST_20LOGF
                              - 0.6 * (h_ut - 1.5))
         pl_nlos = max(pl_los, pl_nlos_candidate)
 
@@ -235,7 +239,7 @@ def bs_path_loss(
                              + 7.5 * math.log10(h)
                              - (24.37 - 3.7 * (h / h_bs)**2) * math.log10(h_bs)
                              + (43.42 - 3.1 * math.log10(h_bs)) * (math.log10(d3d_m) - 3.0)
-                             + 20.0 * math.log10(f_ghz)
+                             + _PL_CONST_20LOGF
                              - (3.2 * (math.log10(11.75 * h_ut))**2 - 4.97))
         pl_nlos = max(pl_los, pl_nlos_candidate)
 

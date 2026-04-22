@@ -219,16 +219,14 @@ def run_one(
             ue = traffic.generate_ue(sim_time)
 
             # -----------------------------------------------------------
-            # CSR scope check
+            # RSRP table and CSR scope check
             # -----------------------------------------------------------
-            full_rsrp: Dict[int, float] = {}
-            for cell in network.cells:
-                full_rsrp[cell.cell_id] = radio.cell_rsrp(cell, ue)
-            best_preincident = max(full_rsrp, key=lambda k: full_rsrp[k])
+            # Populate cache and get current table
+            rsrp_tbl = radio.get_optimized_rsrp_table(ue)
+            
+            # For scope, we look at terrestrial only (pre-incident logic)
+            best_preincident = max(ue.terrestrial_rsrp_cache, key=lambda k: ue.terrestrial_rsrp_cache[k])
             in_scope = best_preincident in csr_scope
-
-            # Current RSRP table
-            rsrp_tbl = radio.rsrp_table(ue)
 
             if in_scope:
                 csr_tracker.record_attempt(sim_time)
@@ -335,7 +333,7 @@ def run_one(
             ue = active_ues.get(ue_id)
             if ue and ue.serving_cell_id is not None:
                 # Re-check conditions
-                rsrp_tbl = radio.rsrp_table(ue)
+                rsrp_tbl = radio.get_optimized_rsrp_table(ue)
                 curr_rsrp = rsrp_tbl.get(ue.serving_cell_id, -1e9)
                 new_rsrp  = rsrp_tbl.get(target_cid, -1e9)
                 

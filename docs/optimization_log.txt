@@ -1,0 +1,9 @@
+Optimization Log - Drone Positioning Simulation
+================================================
+
+Target: Reduce computational redundancy and improve runtime efficiency.
+
+[DONE] Pre-calculated frequency-dependent constants in propagation.py.
+[DONE] Implement incremental load tracking in AdmissionController (resource.py).
+[DONE] Cache linear power (Watts) in RadioEngine RSRP tables (resource.py).
+[DONE] Switch handover.py to use optimized (cached) RSRP retrieval.

@@ -34,6 +34,8 @@ class UE:
     resource_fraction: float = 0.0  # fraction of cell resources allocated
     # Cached RSRP values from stationary terrestrial cells: cell_id -> RSRP (dBm)
     terrestrial_rsrp_cache: Dict[int, float] = field(default_factory=dict)
+    # Cached linear power values: cell_id -> Watts
+    terrestrial_watts_cache: Dict[int, float] = field(default_factory=dict)
 
     @property
     def departure_time(self) -> float:

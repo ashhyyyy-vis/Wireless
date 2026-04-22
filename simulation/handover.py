@@ -9,7 +9,7 @@ def process_handovers(sim_time, active_ues, radio, admission):
         if ue.serving_cell_id is None:
             continue
 
-        rsrp_tbl = radio.rsrp_table(ue)
+        rsrp_tbl = radio.get_optimized_rsrp_table(ue)
         best_cid = radio.select_cell(rsrp_tbl)
 
         if best_cid is None or best_cid == ue.serving_cell_id:

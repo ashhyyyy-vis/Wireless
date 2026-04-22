@@ -64,6 +64,12 @@ class RadioEngine:
         self.env = env
         self.h_bs = BS_HEIGHT[env]
 
+    def dbm_to_watts(self, dbm: float) -> float:
+        """Helper to convert dBm to linear Watts."""
+        if dbm == -math.inf:
+            return 0.0
+        return (10 ** (dbm / 10.0)) * 1e-3
+
     # ------------------------------------------------------------------
     # RSRP from a regular BS cell to a UE
     # ------------------------------------------------------------------
@@ -128,7 +134,9 @@ class RadioEngine:
         if not ue.terrestrial_rsrp_cache:
             # Populate cache if empty
             for cell in self.net.active_cells():
-                ue.terrestrial_rsrp_cache[cell.cell_id] = self.cell_rsrp(cell, ue)
+                dbm = self.cell_rsrp(cell, ue)
+                ue.terrestrial_rsrp_cache[cell.cell_id] = dbm
+                ue.terrestrial_watts_cache[cell.cell_id] = self.dbm_to_watts(dbm)
         
         # Start with cached terrestrial values
         table = ue.terrestrial_rsrp_cache.copy()
@@ -218,23 +226,20 @@ class RadioEngine:
         """
         Why use this function: Computes the Signal-to-Interference-plus-Noise Ratio (SINR) 
         for a UE connected to a specific serving cell.
-
-        Args:
-            serving_cell_id (int): The ID of the UE's serving cell.
-            ue (UE): The User Equipment (presently unused but available for extensions).
-            rsrp_table (Dict[int, float]): The previously calculated RSRP table for this UE.
-
-        Returns:
-            float: The SINR in dB. Returns -math.inf if the signal is zero.
         """
         signal_dbm = rsrp_table.get(serving_cell_id, -math.inf)
-        signal_w   = 10 ** (signal_dbm / 10.0) * 1e-3
+        signal_w   = self.dbm_to_watts(signal_dbm)
 
         interf_w = 0.0
         for cell_id, rsrp_dbm in rsrp_table.items():
             if cell_id == serving_cell_id:
                 continue
-            interf_w += 10 ** (rsrp_dbm / 10.0) * 1e-3
+            
+            # Optimization: Use cached Watts for terrestrial cells
+            if cell_id in ue.terrestrial_watts_cache:
+                interf_w += ue.terrestrial_watts_cache[cell_id]
+            else:
+                interf_w += self.dbm_to_watts(rsrp_dbm)
 
         sinr_w = signal_w / (interf_w + NOISE_FLOOR_W)
         if sinr_w <= 0:
@@ -343,24 +348,32 @@ class AdmissionController:
         self.drone = drone
         # cell_id -> {ue_id -> resource_fraction}
         self._allocations: Dict[int, Dict[int, float]] = {}
+        # Incremental load tracking: cell_id -> total_fraction
+        self._cell_loads: Dict[int, float] = {}
 
         # Initialize allocation tables for all cells + drone
         for cell in network.cells:
-            self._allocations[cell.cell_id] = {}
+            cid = cell.cell_id
+            self._allocations[cid] = {}
+            self._cell_loads[cid] = 0.0
+            
         # Drone cell allocated separately
         if drone.cell_id >= 0:
-            self._allocations[drone.cell_id] = {}
+            cid = drone.cell_id
+            self._allocations[cid] = {}
+            self._cell_loads[cid] = 0.0
 
     def _ensure_cell(self, cell_id: int):
         if cell_id not in self._allocations:
             self._allocations[cell_id] = {}
+            self._cell_loads[cell_id] = 0.0
 
     def cell_load(self, cell_id: int) -> float:
         """
         Why use this function: Calculates the total fraction of resources currently in use.
         """
         self._ensure_cell(cell_id)
-        return sum(self._allocations[cell_id].values())
+        return self._cell_loads[cell_id]
 
     def cell_load_per_ue(self, cell_id: int) -> float:
         """
@@ -370,7 +383,7 @@ class AdmissionController:
         allocs = self._allocations[cell_id]
         if not allocs:
             return 0.0
-        return sum(allocs.values()) / len(allocs)
+        return self._cell_loads[cell_id] / len(allocs)
 
     def num_ues(self, cell_id: int) -> int:
         """
@@ -389,9 +402,9 @@ class AdmissionController:
         Attempts to admit a UE to a cell.
         """
         self._ensure_cell(cell_id)
-        current_load = self.cell_load(cell_id)
-        if current_load + req_fraction <= 1.0:
+        if self._cell_loads[cell_id] + req_fraction <= 1.0:
             self._allocations[cell_id][ue.ue_id] = req_fraction
+            self._cell_loads[cell_id] += req_fraction
             ue.serving_cell_id = cell_id
             ue.resource_fraction = req_fraction
             # Update cell's UE list
@@ -410,20 +423,21 @@ class AdmissionController:
         """
         dropped_ues = []
         
-        # 1. Update all fractions
-        for cid in list(self._allocations.keys()):
+        # 1. Update all fractions and recalculate totals
+        for cid in self._allocations:
+            new_total = 0.0
             for uid in list(self._allocations[cid].keys()):
                 ue = active_ues.get(uid)
                 if ue:
                     new_frac = radio.update_ue_resource_fraction(ue)
                     self._allocations[cid][uid] = new_frac
+                    new_total += new_frac
+            self._cell_loads[cid] = new_total
         
         # 2. Check each cell for overload
         for cid in list(self._allocations.keys()):
-            load = self.cell_load(cid)
-            if load > 1.000001: # allow for float epsilon
+            if self._cell_loads[cid] > 1.000001:
                 # Sort UEs by fraction ascending (Paper: "unsatisfied UE that requires the least ... amount")
-                # Keep the least hungry ones and drop the most hungry.
                 uids_sorted = sorted(self._allocations[cid].keys(), 
                                      key=lambda u: self._allocations[cid][u])
                 
@@ -435,12 +449,11 @@ class AdmissionController:
                         new_load += f
                         to_keep.append(uid)
                     else:
-                        # Drop this and all subsequent UEs
                         dropped_ues.append(uid)
                 
                 # Apply changes to allocations
-                new_allocs = {uid: self._allocations[cid][uid] for uid in to_keep}
-                self._allocations[cid] = new_allocs
+                self._allocations[cid] = {uid: self._allocations[cid][uid] for uid in to_keep}
+                self._cell_loads[cid] = new_load
                 
                 # Update cell object's assigned_ues
                 cell_obj = self._get_cell_obj(cid)
@@ -457,7 +470,10 @@ class AdmissionController:
             return
         cell_id = ue.serving_cell_id
         self._ensure_cell(cell_id)
-        self._allocations[cell_id].pop(ue.ue_id, None)
+        
+        old_frac = self._allocations[cell_id].pop(ue.ue_id, 0.0)
+        self._cell_loads[cell_id] = max(0.0, self._cell_loads[cell_id] - old_frac)
+
         cell_or_drone = self._get_cell_obj(cell_id)
         if cell_or_drone and ue.ue_id in cell_or_drone.assigned_ues:
             cell_or_drone.assigned_ues.remove(ue.ue_id)
@@ -469,6 +485,7 @@ class AdmissionController:
         """
         self._ensure_cell(cell_id)
         self._allocations[cell_id].clear()
+        self._cell_loads[cell_id] = 0.0
 
     def _get_cell_obj(self, cell_id: int):
         """Return Cell or a drone proxy with assigned_ues list."""
