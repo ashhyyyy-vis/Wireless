@@ -5,7 +5,7 @@ import sys
 import time
 sys.path.insert(0, ".")
 import numpy as np
-from run_simulation import run_one
+from runners import run_one
 
 ENV = "rural"
 LAMBDAS=[round(1 + i*0.25, 2) for i in range(int((6-1)/0.25) + 1)]  # 1.0, 1.25, 1.5, ..., 6.0

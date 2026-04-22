@@ -4,14 +4,15 @@ Drone base station object: position, channel computation.
 Paper reference: Section V-A (drone model), Section IV (CIO)
 """
 import math
+import numpy as np
 from dataclasses import dataclass, field
 
-from simulation.config import (
+from .config import (
     DRONE_ALTITUDE_M, DRONE_CIO_DB,
     P_TX_DRONE_DBM, ENVIRONMENT,
 )
-from simulation.antenna import drone_antenna_gain, drone_off_axis_angle
-from simulation.propagation import drone_path_loss
+from .antenna import drone_antenna_gain, drone_off_axis_angle
+from .propagation import drone_path_loss
 
 
 @dataclass
@@ -68,20 +69,11 @@ class Drone:
         ue_z: float = 1.5,
         d2d: float | None = None,
         env: str = ENVIRONMENT,
+        rng: np.random.Generator | None = None,
     ) -> float:
         """
         Why use this function: Calculates the Reference Signal Received Power (RSRP) 
         from the drone to a specific UE position.
-
-        Args:
-            ue_x (float): UE X position.
-            ue_y (float): UE Y position.
-            ue_z (float): UE Z position. Defaults to 1.5.
-            d2d (float | None): Optional pre-calculated 2D distance.
-            env (str): Environment type ("urban" or "rural").
-
-        Returns:
-            float: RSRP in dBm. Returns -math.inf if drone is inactive.
         """
         if not self.active:
             return -math.inf
@@ -105,6 +97,7 @@ class Drone:
             ue_x, ue_y, ue_z,
             d2d=d2d,
             env=env,
+            rng=rng,
         )
 
         return P_TX_DRONE_DBM + gain - pl

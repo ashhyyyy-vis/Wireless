@@ -1,0 +1,117 @@
+# Drone-BS Online Positioning Simulation: Usage Instructions
+
+This document explains how to use the various scripts provided in the `choice_scarf` project.
+Note: Since the project is now structured as a package, all scripts should be run from the **project root** using the `-m` (module) flag.
+
+---
+
+## 1. Full Research Battery (`runners/main.py`)
+Runs the complete set of scenarios (48 total) defined in the research paper.
+
+* **Run a specific Case** (1-6):
+  ```bash
+  python3 -m runners.main <case_number>
+  # Example: python3 -m runners.main 2
+  ```
+* **Run all scenarios**:
+  ```bash
+  python3 -m runners.main
+  ```
+* **Output**: Aggregated CSR results are saved to `results/all_scenarios_results.csv`.
+
+---
+
+## 2. Metric Comparison (`tools/metric_comp.py`)
+Compares all 7 Control Metrics (CM1-CM7) against baselines for a specific scenario.
+
+* **Usage**:
+  ```bash
+  python3 -m tools.metric_comp --scenario <ID> --lambda_ <val> --runs <n>
+  # Example: python3 -m tools.metric_comp --scenario DU-100-60-4 --runs 5
+  ```
+* **Output**: Detailed results in `results/<scenario>_results.csv`.
+
+---
+
+## 3. Batch Convergence Analysis (`runners/run_convergence.py`)
+Runs convergence analysis for the 6 representative cases to see how CSR stabilizes over time.
+
+* **Usage**:
+  ```bash
+  python3 -m runners.run_convergence --mode [algorithm|energy_algorithm] --runs <n>
+  # Example: python3 -m runners.run_convergence --mode algorithm
+  ```
+* **Output**: Summary in `results/convergence_summary_<mode>.csv` and time-series CSVs for each case.
+
+---
+
+## 4. Energy-Aware Comparison (`runners/run_energy_comparison.py`)
+Evaluates the efficiency gains (steps saved) and CSR impact of the energy-aware algorithm.
+
+* **Usage**:
+  ```bash
+  python3 -m runners.run_energy_comparison --runs <n>
+  # Example: python3 -m runners.run_energy_comparison --runs 3
+  ```
+* **Output**: Comparative report in `results/energy_comparison_report.csv`.
+
+---
+
+## 5. Parameter Tuning (`tools/tune_parameters.py`)
+Finds optimal values for Alpha, Epsilon, or Lambda via parameter sweeps.
+
+* **Usage**:
+  ```bash
+  python3 -m tools.tune_parameters --scenario <ID> --mode [alpha|epsilon|lambda] --start <val> --end <val> --steps <n>
+  # Example: python3 -m tools.tune_parameters --scenario DU-100-60-4 --mode alpha --start 1.0 --end 10.0
+  ```
+* **Output**: Results in `results/tuning_<mode>_<scenario>.csv`.
+
+---
+
+## 6. Lambda Calibration (`tools/calibrate.py` / `tools/calibrate_rural.py`)
+Finds the arrival rate (Lambda) that yields the target healthy CSR for Urban or Rural environments.
+
+* **Usage**:
+  ```bash
+  python3 -m tools.calibrate          # For Urban
+  python3 -m tools.calibrate_rural.py    # For Rural
+  ```
+* **Output**: Prints the recommended lambda to the terminal.
+
+---
+
+## 7. Single Scenario Convergence (`runners/main_convergence.py`)
+Generates high-fidelity convergence data for a single scenario.
+
+* **Usage**:
+  ```bash
+  python3 -m runners.main_convergence --scenario <ID> --mode <mode> --runs <n>
+  # Example: python3 -m runners.main_convergence --scenario RU-0-0-50 --runs 10
+  ```
+
+---
+
+## 8. Lambda Calibration (No-Drone) (`tools/calibrate_no_drone.py`)
+Establish baseline network performance for a healthy network.
+
+* **Usage**:
+  ```bash
+  python3 -m tools.calibrate_no_drone --scenario <ID> --start <val> --end <val> --steps <n>
+  # Example: python3 -m tools.calibrate_no_drone --scenario DU-0-0-0 --start 2.0 --end 8.0
+  ```
+* **Output**: Calibration data in `results/lambda_calibration_<scenario>.csv`.
+
+---
+
+## 9. Diagnostics and Validation
+* **Radio Diagnosis**: `python3 -m tools.diag` (or `diag2`)
+* **Quick Validation**: `python3 -m tests.validate`
+* **Core Algorithm Test**: `python3 -m tests.validate_cm`
+
+---
+
+## Common Arguments & Defaults
+- **Seed**: All scripts are standardized to use a base seed of `100`.
+- **Lambda**: Scripts default to the values in `simulation/config.py` unless overridden by `--lambda_`.
+- **Results**: All output data is stored in the `./results/` directory.

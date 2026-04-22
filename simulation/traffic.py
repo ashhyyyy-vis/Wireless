@@ -7,9 +7,9 @@ Paper reference: Section V-C
 import math
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict
 
-from simulation.config import (
+from .config import (
     LAMBDA_ARRIVAL, CALL_DURATION_MEAN_S,
     HOTSPOT_RADIUS_M, ENVIRONMENT, ISD,
 )
@@ -32,6 +32,8 @@ class UE:
     in_csr_scope: bool = False  # True if UE is in the CSR measurement area
     in_hotspot: bool = False
     resource_fraction: float = 0.0  # fraction of cell resources allocated
+    # Cached RSRP values from stationary terrestrial cells: cell_id -> RSRP (dBm)
+    terrestrial_rsrp_cache: Dict[int, float] = field(default_factory=dict)
 
     @property
     def departure_time(self) -> float:

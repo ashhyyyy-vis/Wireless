@@ -4,12 +4,12 @@ import argparse
 import numpy as np
 import csv
 from multiprocessing import Pool, cpu_count
-from run_simulation import run_one
+from runners import run_one
 
 # Add current directory to path
 sys.path.append(os.getcwd())
 
-from kholo import parse_scenario
+from runners import parse_scenario
 
 def run_calib_job(args):
     scenario, lambda_val, seed, duration = args
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     parser.add_argument("--start", type=float, default=1.0)
     parser.add_argument("--end", type=float, default=10.0)
     parser.add_argument("--steps", type=int, default=10)
-    parser.add_argument("--runs", type=int, default=5)
+    parser.add_argument("--runs", type=int, default=1)
     parser.add_argument("--duration", type=float, default=1800.0)
     
     args = parser.parse_args()

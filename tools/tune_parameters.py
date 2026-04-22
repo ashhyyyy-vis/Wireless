@@ -7,10 +7,10 @@ import csv
 # Add current directory to path
 sys.path.append(os.getcwd())
 
-from run_simulation import run_one
+from runners import run_one
 from simulation.config import LAMBDA_ARRIVAL, ALGO_EPSILON, ALGO_ALPHA, ALGO_ENERGY_COST
 from simulation.algorithm import CMType
-from kholo import parse_scenario
+from runners import parse_scenario
 
 def run_tuning(scenario, mode, duration, start, end, steps):
     env, cx, cy, rho = parse_scenario(scenario)

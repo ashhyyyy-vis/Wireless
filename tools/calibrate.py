@@ -5,7 +5,7 @@ Tests no_drone mode with disaster to calibrate for realistic post-failure condit
 import sys
 sys.path.insert(0, ".")
 import numpy as np
-from run_simulation import run_one
+from runners import run_one
 
 ENV = "urban"
 # Test range from 3 to 12 with 0.25 increments for post-disaster conditions

@@ -1,0 +1,13 @@
+Refactor: Align Radio Fidelity and Restructure Codebase
+
+Implemented high-fidelity radio modeling and modularized project structure:
+
+- Stochastic Link Sampling: Replaced deterministic expected path loss with probabilistic LoS/NLoS sampling in `simulation/propagation.py` and `resource.py` to model realistic signal variance.
+- Project Restructuring: Modularized the root directory into logical sub-packages:
+    - `runners/`: Core simulation entry points and batch scripts.
+    - `tools/`: Calibration, parameter tuning, and diagnostics.
+    - `tests/`: Validation and unit tests.
+    - `docs/` & `references/`: Documentation and source research material.
+- Package Initialization: Added `__init__.py` files and exported core components from `simulation` and `runners` for clean, modular imports.
+- Usage Updates: Refactored execution commands in `docs/instructions.txt` to use `python3 -m` module syntax.
+- Bug Fixes: Resolved import errors (typing, numpy) and fixed a TypeError in the resource rebalancing logic.

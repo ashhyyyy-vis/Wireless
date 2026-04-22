@@ -15,10 +15,10 @@ import math
 from enum import Enum, auto
 from typing import Optional, Callable, Dict,Tuple
 
-from simulation.network import Network
-from simulation.drone import Drone
-from simulation.resource import AdmissionController
-from simulation.config import (
+from .network import Network
+from .drone import Drone
+from .resource import AdmissionController
+from .config import (
     DRONE_STEP_M, CONTROL_INTERVAL_S,
     ALGO_ENERGY_COST, ALGO_ALPHA, ALGO_EPSILON
 )

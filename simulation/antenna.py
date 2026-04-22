@@ -4,7 +4,7 @@ Antenna gain models for regular BS and drone BS.
 Paper reference: Section V-A, Equations (1), (2), (3)
 """
 import math
-from simulation.config import (
+from .config import (
     ANTENNA_HPBW_H_DEG, ANTENNA_HPBW_V_DEG,
     ANTENNA_MAX_GAIN_DBI, ANTENNA_FBR_DB, ANTENNA_SLL_DB,
     ANTENNA_ETILT_DEG,

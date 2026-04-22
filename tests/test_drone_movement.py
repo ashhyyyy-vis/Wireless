@@ -1,6 +1,6 @@
-from run_simulation import run_one
+from runners import run_one
 from simulation.algorithm import CMType
-from kholo import parse_scenario
+from runners import parse_scenario
 
 def test_cm_movement(cm_type,seed=42):
     print(f"\n=== Testing {cm_type.name} ===")

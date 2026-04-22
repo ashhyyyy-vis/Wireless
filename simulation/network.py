@@ -9,7 +9,7 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Tuple
 
-from simulation.config import (
+from .config import (
     ISD, NUM_SITES, NUM_SECTORS, SECTOR_BORESIGHTS_DEG,
     BS_HEIGHT, FAILING_SITE_ID, ENVIRONMENT,
 )

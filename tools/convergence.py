@@ -1,5 +1,5 @@
 import numpy as np
-from run_simulation import run_one
+from runners import run_one
 
 import csv
 import os

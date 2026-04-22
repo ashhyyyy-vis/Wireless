@@ -3,9 +3,9 @@ import csv
 import argparse
 import numpy as np
 from multiprocessing import Pool, cpu_count
-from run_simulation import run_one
+from . import run_one
 from simulation.config import LAMBDA_ARRIVAL, ALGO_ALPHA, ALGO_EPSILON, ALGO_ENERGY_COST
-from kholo import parse_scenario
+from .kholo import parse_scenario
 
 # Define a representative subset for energy comparison
 DEFAULT_SUBSET = [

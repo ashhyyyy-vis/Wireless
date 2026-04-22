@@ -25,7 +25,7 @@ import time as wall_time
 from typing import List, Dict, Optional, Tuple
 import numpy as np
 
-from simulation.config import (
+from simulation import (
     ENVIRONMENT, NUM_SITES, NUM_CELLS,
     PHASE1_DURATION_S, PHASE3_START_S,
     RESULTS_WINDOW_S, SIM_RUNS,
@@ -33,14 +33,12 @@ from simulation.config import (
     HOTSPOT_RADIUS_M, FAILING_SITE_ID,
     DRONE_ALTITUDE_M,
     ALGO_ENERGY_COST, ALGO_ALPHA, ALGO_EPSILON,
+    Network, ShadowFadingService,
+    TrafficGenerator, Hotspot, UE,
+    RadioEngine, AdmissionController, CSRTracker,
+    Drone, DronePositioningAlgorithm, CMType, EnergyAwarePositioningAlgorithm,
+    handover
 )
-from simulation.network import Network
-from simulation.propagation import ShadowFadingService
-from simulation.traffic import TrafficGenerator, Hotspot, UE
-from simulation.resource import RadioEngine, AdmissionController, CSRTracker
-from simulation.drone import Drone
-from simulation.algorithm import DronePositioningAlgorithm, CMType, EnergyAwarePositioningAlgorithm
-from simulation import handover
 
 # ---------------------------------------------------------------------------
 # Event types
@@ -49,7 +47,7 @@ EV_ARRIVAL    = 0
 EV_DEPARTURE  = 1
 EV_ALGORITHM  = 2   # drone position update tick
 EV_DRONE_ACTIVATE = 3  # delayed drone activation
-
+EV_HO_RETRY = 4     # handover retry after 50ms
 
 # ---------------------------------------------------------------------------
 # Single simulation run
@@ -76,22 +74,6 @@ def run_one(
     """
     Why use this function: Executes a single instance of the multi-phase 
     simulation (Warm-up -> Disaster -> Recovery) for a specific benchmark mode.
-
-    Args:
-        env (str): Environment type ("urban" or "rural").
-        hotspot_cx (float): Hotspot X center coordinate in meters.
-        hotspot_cy (float): Hotspot Y center coordinate in meters.
-        rho (float): Traffic density multiplier in the hotspot.
-        mode (str): Benchmark mode ("no_drone", "static_drone", or "algorithm").
-        cm_type (CMType): Control Metric type used for the positioning algorithm.
-        sim_duration_s (float): Total simulation duration in seconds.
-        phase2_start_s (float): Time in seconds when the disaster/hotspot triggers.
-        seed (int): Random seed for reproducibility.
-        lambda_override (Optional[float]): Custom arrival rate to override defaults.
-        verbose (bool): Whether to print progress logs during execution.
-
-    Returns:
-        Dict: A dictionary containing the CSR time series, drone trajectory, and final averaged CSR.
     """
     rng = np.random.default_rng(seed)
 
@@ -142,6 +124,9 @@ def run_one(
 
     # Track active UEs
     active_ues: Dict[int, UE] = {}
+    
+    # Track which active UEs are in CSR scope
+    csr_active_ues = set()
 
     # Handover pending: ue_id -> (candidate_cell_id, trigger_time)
     ho_pending: Dict[int, Tuple[int, float]] = {}
@@ -198,6 +183,10 @@ def run_one(
                     ue = active_ues.get(uid)
                     if ue:
                         admission.release(ue)
+                        active_ues.pop(uid)
+                        if uid in csr_active_ues:
+                            csr_active_ues.remove(uid)
+                            _call_log.append((sim_time, False)) # Mark as failed
                 cell.assigned_ues.clear()
 
             # Activate hotspot
@@ -230,26 +219,19 @@ def run_one(
             ue = traffic.generate_ue(sim_time)
 
             # -----------------------------------------------------------
-            # CSR scope check:
-            # A UE is "in scope" if its pre-incident best-server cell
-            # belongs to the failing site OR one of its immediate
-            # neighbours (the blue + yellow shaded area in Fig 1).
-            # We evaluate this using the healthy-network RSRP, i.e. we
-            # temporarily include failing-site cells regardless of the
-            # disaster state, and find the best unbiased cell.
+            # CSR scope check
             # -----------------------------------------------------------
-            # Build a full RSRP table ignoring failure state
             full_rsrp: Dict[int, float] = {}
-            for cell in network.cells:   # all 36, including failed ones
+            for cell in network.cells:
                 full_rsrp[cell.cell_id] = radio.cell_rsrp(cell, ue)
             best_preincident = max(full_rsrp, key=lambda k: full_rsrp[k])
             in_scope = best_preincident in csr_scope
 
-            # Current (possibly post-disaster) RSRP table for actual serving
+            # Current RSRP table
             rsrp_tbl = radio.rsrp_table(ue)
 
             if in_scope:
-                csr_tracker.attempts += 1
+                csr_tracker.record_attempt(sim_time)
                 selected_cid = radio.select_cell(rsrp_tbl)
                 if selected_cid is None:
                     # No coverage -> failed call
@@ -260,11 +242,9 @@ def run_one(
                     req_frac = radio.required_resource_fraction(sinr)
                     admitted = admission.try_admit(ue, selected_cid, req_frac)
                     if admitted:
-                        csr_tracker.successes += 1
-                        if disaster_triggered:
-                            _call_log.append((sim_time, True))
                         ue.serving_cell_id = selected_cid
                         active_ues[ue.ue_id] = ue
+                        csr_active_ues.add(ue.ue_id)
                         push(ue.departure_time, EV_DEPARTURE, ue.ue_id)
                     else:
                         # Blocked by capacity
@@ -281,9 +261,6 @@ def run_one(
                         active_ues[ue.ue_id] = ue
                         push(ue.departure_time, EV_DEPARTURE, ue.ue_id)
 
-            # Process handovers for all active UEs
-            #handover.process_handovers(sim_time, active_ues, radio, admission)
-
             # Schedule next arrival
             push(traffic.next_arrival_time(sim_time), EV_ARRIVAL, None)
 
@@ -293,12 +270,15 @@ def run_one(
             ue = active_ues.pop(uid, None)
             if ue:
                 admission.release(ue)
+                if uid in csr_active_ues:
+                    csr_active_ues.remove(uid)
+                    csr_tracker.record_success(sim_time)
+                    if disaster_triggered:
+                        _call_log.append((sim_time, True))
 
         # ==================================================================
         elif ev_type == EV_ALGORITHM:
             if drone.active:
-                # Process handovers periodically
-                
                 if mode in ("algorithm", "energy_algorithm") and algo is not None:
                     state = algo.step_algorithm()
                     trajectory.append((
@@ -307,23 +287,75 @@ def run_one(
                         state.get("cm", 0.0),
                     ))
                     
-                    # Verbose drone movement tracking
-                    if verbose and len(trajectory) > 1:
-                        prev = trajectory[-2]
-                        curr = trajectory[-1]
-                        moved = (curr[1] != prev[1] or curr[2] != prev[2])
-                        if moved:
-                            print(f"  t={sim_time:.1f}s: Drone moved to ({curr[1]:.1f},{curr[2]:.1f}), "
-                                  f"CM={curr[3]:.4f}, axis={state.get('axis','N/A')}, "
-                                  f"improved={state.get('improved', False)}")
                 # Update loads for CM computation
                 admission.update_loads()
                 
-                # Process handovers every N algorithm events (reliable timing)
+                # --- Mid-call drop check (Paper §V-D) ---
+                # 1. RSRP check (coverage drops)
+                for uid in list(active_ues.keys()):
+                    ue = active_ues[uid]
+                    if ue.serving_cell_id is not None:
+                        rsrp_tbl = radio.get_optimized_rsrp_table(ue)
+                        rsrp = rsrp_tbl.get(ue.serving_cell_id, -1e9)
+                        if rsrp < -120.0:
+                            if verbose:
+                                print(f"  t={sim_time:.1f}s: UE {uid} DROPPED (Coverage, RSRP={rsrp:.1f} dBm)")
+                            admission.release(ue)
+                            active_ues.pop(uid)
+                            if uid in csr_active_ues:
+                                csr_active_ues.remove(uid)
+                                if disaster_triggered:
+                                    _call_log.append((sim_time, False))
+
+                # 2. Capacity check (Dynamic Dropping / Eviction)
+                dropped_ids = admission.rebalance_all_cells(radio, active_ues)
+                for uid in dropped_ids:
+                    if verbose:
+                        print(f"  t={sim_time:.1f}s: UE {uid} DROPPED (Capacity/Eviction)")
+                    ue = active_ues.pop(uid, None)
+                    if ue:
+                        if uid in csr_active_ues:
+                            csr_active_ues.remove(uid)
+                            if disaster_triggered:
+                                _call_log.append((sim_time, False))
+
+                # Process handovers periodically
                 algo_event_counter += 1
-                if algo_event_counter % 4 == 0:  # Every 25 events = every 10 seconds
-                    handover.process_handovers(sim_time, active_ues, radio, admission)
+                if algo_event_counter % 2 == 0:  # Every 800ms
+                    failed_hos = handover.process_handovers(sim_time, active_ues, radio, admission)
+                    for ue_id, target_cid in failed_hos:
+                        # Schedule retry after 50ms
+                        push(sim_time + 0.050, EV_HO_RETRY, (ue_id, target_cid))
+
                 push(sim_time + CONTROL_INTERVAL_S, EV_ALGORITHM, None)
+
+        # ==================================================================
+        elif ev_type == EV_HO_RETRY:
+            ue_id, target_cid = payload
+            ue = active_ues.get(ue_id)
+            if ue and ue.serving_cell_id is not None:
+                # Re-check conditions
+                rsrp_tbl = radio.rsrp_table(ue)
+                curr_rsrp = rsrp_tbl.get(ue.serving_cell_id, -1e9)
+                new_rsrp  = rsrp_tbl.get(target_cid, -1e9)
+                
+                if new_rsrp >= curr_rsrp + 3.0:
+                    sinr = radio.sinr_db(target_cid, ue, rsrp_tbl)
+                    req_frac = radio.required_resource_fraction(sinr)
+                    
+                    old_cid = ue.serving_cell_id
+                    admission.release(ue)
+                    
+                    if admission.try_admit(ue, target_cid, req_frac):
+                        ue.serving_cell_id = target_cid
+                        if verbose:
+                            print(f"  t={sim_time:.1f}s: Handover RETRY SUCCESS for UE {ue_id}")
+                    else:
+                        # rollback and retry again? 
+                        # Paper says "it is repeated after 50 ms provided that the conditions... are still satisfied"
+                        # To avoid infinite loop, we could limit retries, but paper implies continued retry.
+                        admission.try_admit(ue, old_cid, req_frac)
+                        push(sim_time + 0.050, EV_HO_RETRY, (ue_id, target_cid))
 
         # ==================================================================
         elif ev_type == EV_DRONE_ACTIVATE:

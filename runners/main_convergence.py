@@ -3,9 +3,9 @@ import sys
 import csv
 import numpy as np
 from multiprocessing import Pool, cpu_count
-from run_simulation import run_one
+from . import run_one
 from simulation.config import LAMBDA_ARRIVAL
-from kholo import parse_scenario
+from .kholo import parse_scenario
 
 # Add current directory to path
 sys.path.append(os.getcwd())

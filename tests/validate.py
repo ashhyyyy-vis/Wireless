@@ -6,7 +6,7 @@ recovers better than no-drone.
 import sys
 sys.path.insert(0, ".")
 
-from run_simulation import run_one
+from runners import run_one
 from simulation.algorithm import CMType
 
 PHASE1 = 30 * 60       # 30 min warm-up

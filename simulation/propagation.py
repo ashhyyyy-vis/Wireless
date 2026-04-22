@@ -10,7 +10,7 @@ import math
 import numpy as np
 from typing import Dict, Optional, Tuple
 
-from simulation.config import (
+from .config import (
     ENVIRONMENT, CARRIER_FREQ_HZ, C_LIGHT,
     ETA_LOS_DB, ETA_NLOS_DB,
     DRONE_ENV_PARAMS,
@@ -119,23 +119,12 @@ def drone_path_loss(
     ue_x: float, ue_y: float, ue_z: float = 1.5,
     d2d: float | None = None,
     env: str = ENVIRONMENT,
+    rng: np.random.Generator | None = None,
 ) -> float:
     """
-    Why use this function: Computes the overall Air-to-Ground path loss from the drone 
-    to a UE, combining LoS and NLoS probability models with Free Space Path Loss (Equation 4).
-
-    Args:
-        drone_x (float): Drone X position (meters).
-        drone_y (float): Drone Y position (meters).
-        drone_z (float): Drone Z position (height in meters).
-        ue_x (float): UE X position (meters).
-        ue_y (float): UE Y position (meters).
-        ue_z (float): UE Z position (height in meters). Defaults to 1.5.
-        d2d (float | None): Optional pre-computed 2D horizontal distance.
-        env (str): The environment type ("urban" or "rural"). Defaults to ENVIRONMENT.
-
-    Returns:
-        float: Path loss in dB (to be subtracted from Tx power).
+    Why use this function: Computes the Air-to-Ground path loss from the drone to a UE.
+    If rng is provided, it samples the LoS/NLoS state stochastically (Paper §V-B).
+    Otherwise, it uses the expected value (weighted average).
     """
     if d2d is None:
         dx = ue_x - drone_x
@@ -152,7 +141,13 @@ def drone_path_loss(
     eta_los  = ETA_LOS_DB[env]
     eta_nlos = ETA_NLOS_DB[env]
 
-    pl = fspl + p * eta_los + (1.0 - p) * eta_nlos
+    if rng is not None:
+        # Stochastic sampling (Paper implementation)
+        is_los = rng.random() < p
+        pl = fspl + (eta_los if is_los else eta_nlos)
+    else:
+        # Deterministic weighted average
+        pl = fspl + p * eta_los + (1.0 - p) * eta_nlos
 
     # Apply minimum coupling loss
     return max(pl, MIN_COUPLING_LOSS_DB[env])
@@ -165,14 +160,6 @@ def drone_path_loss(
 def _p_los_urban_macro(d2d_m: float, h_bs: float = 25.0, h_ut: float = 1.5) -> float:
     """
     Why use this function: Computes the Line-of-Sight probability for 3GPP Urban Macro (UMa).
-
-    Args:
-        d2d_m (float): 2D distance in meters.
-        h_bs (float): Base station height in meters. Defaults to 25.0.
-        h_ut (float): User terminal height in meters. Defaults to 1.5.
-
-    Returns:
-        float: Probability of LoS in [0, 1].
     """
     if d2d_m <= 18.0:
         return 1.0
@@ -185,12 +172,6 @@ def _p_los_urban_macro(d2d_m: float, h_bs: float = 25.0, h_ut: float = 1.5) -> f
 def _p_los_rural_macro(d2d_m: float) -> float:
     """
     Why use this function: Computes the Line-of-Sight probability for 3GPP Rural Macro (RMa).
-
-    Args:
-        d2d_m (float): 2D distance in meters.
-
-    Returns:
-        float: Probability of LoS in [0, 1].
     """
     if d2d_m <= 10.0:
         return 1.0
@@ -203,20 +184,11 @@ def bs_path_loss(
     h_bs: float,
     h_ut: float = 1.5,
     env: str = ENVIRONMENT,
+    rng: np.random.Generator | None = None,
 ) -> float:
     """
-    Why use this function: Calculates the path loss between a regular Base Station and a UE 
-    using the simplified 3GPP TR 38.901 UMa/RMa combined probability models.
-
-    Args:
-        d2d_m (float): 2D horizontal distance in meters.
-        d3d_m (float): 3D distance in meters.
-        h_bs (float): BS antenna height in meters.
-        h_ut (float): UE height in meters. Defaults to 1.5.
-        env (str): The environment type ("urban" or "rural"). Defaults to ENVIRONMENT.
-
-    Returns:
-        float: Path loss in dB.
+    Why use this function: Calculates the path loss between a regular Base Station and a UE.
+    If rng is provided, it samples the LoS/NLoS state stochastically.
     """
     f_ghz = CARRIER_FREQ_HZ / 1e9
 
@@ -269,7 +241,13 @@ def bs_path_loss(
 
         p = _p_los_rural_macro(d2d_m)
 
-    pl = p * pl_los + (1.0 - p) * pl_nlos
+    if rng is not None:
+        # Stochastic sampling
+        is_los = rng.random() < p
+        pl = pl_los if is_los else pl_nlos
+    else:
+        # Deterministic weighted average
+        pl = p * pl_los + (1.0 - p) * pl_nlos
 
     # Apply minimum coupling loss
     return max(pl, MIN_COUPLING_LOSS_DB[env])
@@ -382,7 +360,11 @@ class ShadowFadingService:
     ) -> None:
         """
         Why use this function: Initializes the shadow fading service by 
-        pre-generating independent fading maps for every site in the network.
+        pre-generating spatially correlated fading maps with inter-site 
+        correlation ω.
+        
+        Shadow fading is modeled as S_i = sqrt(ω) * Z_common + sqrt(1-ω) * Z_site_i
+        where both Z terms are spatially correlated log-normal maps.
 
         Args:
             num_sites (int): Total number of sites requiring a fading map.
@@ -394,14 +376,22 @@ class ShadowFadingService:
         """
         self.rng = rng if rng is not None else np.random.default_rng()
         self.omega = SHADOW_SITE_TO_SITE_CORR
-        # Generate independent maps
-        self._maps = [
+        
+        # Common map (shared by all sites)
+        self._common_map = ShadowFadingMap(env=env, rng=self.rng)
+        
+        # Independent maps for each site
+        self._site_maps = [
             ShadowFadingMap(env=env, rng=self.rng) for _ in range(num_sites)
         ]
+        
+        self.sqrt_omega = math.sqrt(self.omega)
+        self.sqrt_one_minus_omega = math.sqrt(1.0 - self.omega)
 
     def get(self, site_id: int, ue_x: float, ue_y: float) -> float:
         """
-        Why use this function: Retrieves the shadow fading value (dB) for a specific site-to-UE link.
+        Why use this function: Retrieves the shadow fading value (dB) for a specific site-to-UE link,
+        combining common and site-specific components for inter-site correlation.
 
         Args:
             site_id (int): The ID of the serving site.
@@ -411,4 +401,7 @@ class ShadowFadingService:
         Returns:
             float: Simulated shadow fading value in dB.
         """
-        return self._maps[site_id].get(ue_x, ue_y)
+        common_val = self._common_map.get(ue_x, ue_y)
+        site_val   = self._site_maps[site_id].get(ue_x, ue_y)
+        
+        return self.sqrt_omega * common_val + self.sqrt_one_minus_omega * site_val

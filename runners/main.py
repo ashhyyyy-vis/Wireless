@@ -1,5 +1,5 @@
 import sys
-from kholo import run_all_scenarios
+from .kholo import run_all_scenarios
 from simulation.cases import cases
 
 if __name__ == "__main__":

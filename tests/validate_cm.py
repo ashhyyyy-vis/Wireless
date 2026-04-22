@@ -5,7 +5,7 @@ from multiprocessing import Pool, cpu_count
 
 sys.path.insert(0, ".")
 
-from run_simulation import run_one
+from runners import run_one
 from simulation.algorithm import CMType
 
 

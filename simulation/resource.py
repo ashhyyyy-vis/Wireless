@@ -8,18 +8,18 @@ import math
 import numpy as np
 from typing import Dict, List, Optional, Tuple
 
-from simulation.config import (
+from .config import (
     P_TX_BS_DBM, COVERAGE_THRESHOLD_DBM,
     THERMAL_NOISE_DBM, NOISE_FIGURE_DB,
     BANDWIDTH_HZ, CTRL_OVERHEAD_KAPPA,
     MIN_BITRATE_MBPS, HANDOVER_HYSTERESIS_DB, HANDOVER_TTT_S,
     ENVIRONMENT, BS_HEIGHT, NUM_SITES,
 )
-from simulation.network import Network, Cell
-from simulation.antenna import bs_antenna_gain
-from simulation.propagation import bs_path_loss, ShadowFadingService
-from simulation.traffic import UE
-from simulation.drone import Drone
+from .network import Network, Cell
+from .antenna import bs_antenna_gain
+from .propagation import bs_path_loss, ShadowFadingService
+from .traffic import UE
+from .drone import Drone
 
 
 # ---------------------------------------------------------------------------
@@ -92,7 +92,7 @@ class RadioEngine:
         )
 
         gain = bs_antenna_gain(phi, theta)
-        pl   = bs_path_loss(d2d, d3d, self.h_bs, ue.z, self.env)
+        pl   = bs_path_loss(d2d, d3d, self.h_bs, ue.z, self.env, rng=self.shadow.rng)
         sf   = self.shadow.get(cell.site_id, ue.x, ue.y)
 
         return P_TX_BS_DBM + gain - pl - sf
@@ -114,7 +114,48 @@ class RadioEngine:
         if not self.drone.active:
             return -math.inf
         d2d, _, _ = self.net.dist_2d(self.drone.x, self.drone.y, ue.x, ue.y)
-        return self.drone.rsrp(ue.x, ue.y, ue.z, d2d=d2d, env=self.env)
+        return self.drone.rsrp(ue.x, ue.y, ue.z, d2d=d2d, env=self.env, rng=self.shadow.rng)
+
+    # ------------------------------------------------------------------
+    # Optimized RSRP table using cache
+    # ------------------------------------------------------------------
+
+    def get_optimized_rsrp_table(self, ue: UE) -> Dict[int, float]:
+        """
+        Why use this function: Retrieves the RSRP table using cached terrestrial values 
+        to avoid redundant stationary calculations, only computing the new drone RSRP.
+        """
+        if not ue.terrestrial_rsrp_cache:
+            # Populate cache if empty
+            for cell in self.net.active_cells():
+                ue.terrestrial_rsrp_cache[cell.cell_id] = self.cell_rsrp(cell, ue)
+        
+        # Start with cached terrestrial values
+        table = ue.terrestrial_rsrp_cache.copy()
+        
+        # Add dynamic drone RSRP
+        if self.drone.active:
+            table[self.drone.cell_id] = self.drone_rsrp(ue)
+            
+        return table
+
+    # ------------------------------------------------------------------
+    # Update UE's resource fraction based on latest conditions
+    # ------------------------------------------------------------------
+    
+    def update_ue_resource_fraction(self, ue: UE) -> float:
+        """
+        Recalculates the resource fraction a UE needs based on current positions.
+        """
+        if ue.serving_cell_id is None:
+            return 0.0
+        
+        rsrp_tbl = self.get_optimized_rsrp_table(ue)
+        sinr = self.sinr_db(ue.serving_cell_id, ue, rsrp_tbl)
+        new_frac = self.required_resource_fraction(sinr)
+        
+        ue.resource_fraction = new_frac
+        return new_frac
 
     # ------------------------------------------------------------------
     # RSRP table for all active cells + drone
@@ -242,39 +283,27 @@ class CSRTracker:
         """
         Why use this function: Initializes the tracker to monitor call 
         attempts and successes within the pre-defined CSR scope.
-
-        Args:
-            None
-
-        Returns:
-            None
         """
         self.attempts = 0
         self.successes = 0
         self._history: List[Tuple[float, float]] = []   # (time, csr)
 
-    def record_attempt(self, success: bool, sim_time: float) -> None:
+    def record_attempt(self, sim_time: float) -> None:
         """
-        Why use this function: Logs a call admission event for tracking the success rate.
-
-        Args:
-            success (bool): True if the call was admitted, False if dropped or blocked.
-            sim_time (float): The current simulation time (unused internally but kept for compatibility).
-
-        Returns:
-            None
+        Why use this function: Logs a call initiation attempt.
         """
         self.attempts += 1
-        if success:
-            self.successes += 1
+
+    def record_success(self, sim_time: float) -> None:
+        """
+        Why use this function: Logs a call that finished successfully (not dropped).
+        """
+        self.successes += 1
 
     @property
     def csr(self) -> float:
         """
         Why use this function: Calculates the Call Success Rate based on recorded attempts.
-
-        Args:
-            None
 
         Returns:
             float: Call Success Rate between 0.0 and 1.0. Defaults to 1.0 if no attempts made.
@@ -290,12 +319,6 @@ class CSRTracker:
         """
         Why use this function: Clears the call history metrics, typically used when shifting
         from Phase I to Phase II to capture purely post-disaster stats.
-
-        Args:
-            None
-
-        Returns:
-            None
         """
         self.attempts = 0
         self.successes = 0
@@ -315,13 +338,6 @@ class AdmissionController:
         """
         Why use this function: Initializes the admission controller to manage 
         resource allocations across all terrestrial cells and the drone.
-
-        Args:
-            network (Network): The network object.
-            drone (Drone): The drone base station object.
-
-        Returns:
-            None
         """
         self.net = network
         self.drone = drone
@@ -341,27 +357,14 @@ class AdmissionController:
 
     def cell_load(self, cell_id: int) -> float:
         """
-        Why use this function: Calculates the total fraction of resources currently in use by all UEs in a cell.
-
-        Args:
-            cell_id (int): The ID of the cell to query.
-
-        Returns:
-            float: Total resource load fraction.
+        Why use this function: Calculates the total fraction of resources currently in use.
         """
         self._ensure_cell(cell_id)
         return sum(self._allocations[cell_id].values())
 
     def cell_load_per_ue(self, cell_id: int) -> float:
         """
-        Why use this function: Calculates the average resource fraction per UE in a given cell. 
-        This is heavily used by the positioning algorithm (CM4-CM7).
-
-        Args:
-            cell_id (int): The ID of the cell to query.
-
-        Returns:
-            float: Average load per UE. Defaults to 0.0 if empty.
+        Why use this function: Calculates the average resource fraction per UE.
         """
         self._ensure_cell(cell_id)
         allocs = self._allocations[cell_id]
@@ -371,13 +374,7 @@ class AdmissionController:
 
     def num_ues(self, cell_id: int) -> int:
         """
-        Why use this function: Fetches the number of User Equipments currently admitted to a cell.
-
-        Args:
-            cell_id (int): The ID of the cell to query.
-
-        Returns:
-            int: The number of active UEs in the cell.
+        Why use this function: Fetches the number of active UEs in the cell.
         """
         self._ensure_cell(cell_id)
         return len(self._allocations[cell_id])
@@ -389,16 +386,7 @@ class AdmissionController:
         req_fraction: float,
     ) -> bool:
         """
-        Why use this function: Attempts to admit a UE to a cell, succeeding only if the 
-        cell has enough unused capacity to cover req_fraction.
-
-        Args:
-            ue (UE): The UE instance to admit.
-            cell_id (int): The target cell ID.
-            req_fraction (float): The fraction [0.0 - 1.0] of bandwidth the UE needs.
-
-        Returns:
-            bool: True if admitted, False if blocked by capacity.
+        Attempts to admit a UE to a cell.
         """
         self._ensure_cell(cell_id)
         current_load = self.cell_load(cell_id)
@@ -413,15 +401,57 @@ class AdmissionController:
             return True
         return False
 
+    def rebalance_all_cells(self, radio: RadioEngine, active_ues: Dict[int, UE]) -> List[int]:
+        """
+        Why use this function: Implements Dynamic Dropping (Paper §V-D). 
+        Updates required fractions for all UEs and drops the 'hungriest' if load > 1.0.
+        
+        Returns: List of ue_ids that were dropped during rebalancing.
+        """
+        dropped_ues = []
+        
+        # 1. Update all fractions
+        for cid in list(self._allocations.keys()):
+            for uid in list(self._allocations[cid].keys()):
+                ue = active_ues.get(uid)
+                if ue:
+                    new_frac = radio.update_ue_resource_fraction(ue)
+                    self._allocations[cid][uid] = new_frac
+        
+        # 2. Check each cell for overload
+        for cid in list(self._allocations.keys()):
+            load = self.cell_load(cid)
+            if load > 1.000001: # allow for float epsilon
+                # Sort UEs by fraction ascending (Paper: "unsatisfied UE that requires the least ... amount")
+                # Keep the least hungry ones and drop the most hungry.
+                uids_sorted = sorted(self._allocations[cid].keys(), 
+                                     key=lambda u: self._allocations[cid][u])
+                
+                new_load = 0.0
+                to_keep = []
+                for uid in uids_sorted:
+                    f = self._allocations[cid][uid]
+                    if new_load + f <= 1.0:
+                        new_load += f
+                        to_keep.append(uid)
+                    else:
+                        # Drop this and all subsequent UEs
+                        dropped_ues.append(uid)
+                
+                # Apply changes to allocations
+                new_allocs = {uid: self._allocations[cid][uid] for uid in to_keep}
+                self._allocations[cid] = new_allocs
+                
+                # Update cell object's assigned_ues
+                cell_obj = self._get_cell_obj(cid)
+                if cell_obj:
+                    cell_obj.assigned_ues = list(to_keep)
+                    
+        return dropped_ues
+
     def release(self, ue: UE) -> None:
         """
-        Why use this function: Frees the cell resources allocated to a UE when its call finishes or drops.
-
-        Args:
-            ue (UE): The User Equipment whose resources need releasing.
-
-        Returns:
-            None
+        Why use this function: Frees the cell resources allocated to a UE.
         """
         if ue.serving_cell_id is None:
             return
@@ -435,14 +465,7 @@ class AdmissionController:
 
     def release_all_in_cell(self, cell_id: int) -> None:
         """
-        Why use this function: Forcibly drops/releases all UEs currently attached to a cell. 
-        Used when a site fails during the simulated disaster.
-
-        Args:
-            cell_id (int): The affected cell's ID.
-
-        Returns:
-            None
+        Why use this function: Forcibly drops/releases all UEs currently attached to a cell.
         """
         self._ensure_cell(cell_id)
         self._allocations[cell_id].clear()
@@ -457,14 +480,7 @@ class AdmissionController:
 
     def update_loads(self) -> None:
         """
-        Why use this function: Refreshes the `load` attribute on all Network cell objects. 
-        Important for metrics calculated just before an algorithm tick.
-
-        Args:
-            None
-
-        Returns:
-            None
+        Why use this function: Refreshes the `load` attribute on all Network cell objects.
         """
         for cell in self.net.cells:
             cell.load = self.cell_load(cell.cell_id)

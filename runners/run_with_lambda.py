@@ -7,7 +7,7 @@ Script to run main.py with appropriate lambda values for each case:
 
 import sys
 import os
-from kholo import run_all_scenarios
+from .kholo import run_all_scenarios
 from simulation.cases import cases
 
 # Hardcoded lambda values from observations/calibrated_stuff.txt
