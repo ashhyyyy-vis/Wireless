@@ -1,15 +1,11 @@
+import time
 import os
 import sys
 import argparse
 import numpy as np
 import csv
 from multiprocessing import Pool, cpu_count
-from runners import run_one
-
-# Add current directory to path
-sys.path.append(os.getcwd())
-
-from runners import parse_scenario
+from runners import run_one, parse_scenario
 
 def run_calib_job(args):
     scenario, lambda_val, seed, duration = args
@@ -25,7 +21,7 @@ def run_calib_job(args):
         seed=seed,
         lambda_override=lambda_val,
         sim_duration_s=duration,
-        phase2_start_s=duration + 1, # Keep network healthy for the whole duration
+        phase2_start_s=duration - 900, # Keep network healthy for the whole duration
         verbose=False,
     )
     return res["final_csr"]
@@ -44,22 +40,32 @@ def calibrate_lambda(scenario="DU-0-0-0", start=1.0, end=10.0, steps=10, runs=5,
     print(f"{'Lambda':<10} | {'Mean CSR':<12} | {'Std Dev':<10}")
     print("-" * 60)
 
+    # Prepare all jobs upfront
+    all_jobs = []
     for lam in lambdas:
-        jobs = [(scenario, lam, 100 + i, duration) for i in range(runs)]
-        
-        workers = min(cpu_count(), runs)
-        with Pool(workers) as p:
-            csrs = p.map(run_calib_job, jobs)
+        for i in range(runs):
+            all_jobs.append((scenario, lam, 100 + i, duration))
+    
+    workers = min(cpu_count(), len(all_jobs))
+    all_results = []
+    with Pool(workers) as p:
+        for i, res in enumerate(p.imap(run_calib_job, all_jobs)):
+            all_results.append(res)
             
-        mean_csr = np.mean(csrs)
-        std_csr = np.std(csrs)
-        
-        print(f"{lam:<10.4f} | {mean_csr:<12.4f} | {std_csr:<10.4f}")
-        results.append({
-            "lambda": float(lam),
-            "mean_csr": float(mean_csr),
-            "std_csr": float(std_csr)
-        })
+            # Print as each lambda's batch completes
+            if (i + 1) % runs == 0:
+                idx = i // runs
+                lam = lambdas[idx]
+                csrs = all_results[idx * runs : (idx + 1) * runs]
+                mean_csr = np.mean(csrs)
+                std_csr = np.std(csrs)
+                
+                print(f"{lam:<10.4f} | {mean_csr:<12.4f} | {std_csr:<10.4f}")
+                results.append({
+                    "lambda": float(lam),
+                    "mean_csr": float(mean_csr),
+                    "std_csr": float(std_csr)
+                })
 
     # Save to results
     os.makedirs("results", exist_ok=True)
@@ -82,7 +88,7 @@ if __name__ == "__main__":
     parser.add_argument("--duration", type=float, default=1800.0)
     
     args = parser.parse_args()
-    
+    start=time.time()
     calibrate_lambda(
         scenario=args.scenario, 
         start=args.start, 
@@ -91,3 +97,5 @@ if __name__ == "__main__":
         runs=args.runs, 
         duration=args.duration
     )
+    end=time.time()
+    print(f"Total time taken: {end-start}")

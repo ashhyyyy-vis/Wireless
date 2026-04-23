@@ -1,14 +1,10 @@
 import os
-import sys
 import csv
 import numpy as np
 from multiprocessing import Pool, cpu_count
 from . import run_one
 from simulation.config import LAMBDA_ARRIVAL
 from .kholo import parse_scenario
-
-# Add current directory to path
-sys.path.append(os.getcwd())
 
 def _run_single(args):
     """Worker for parallel simulation runs."""

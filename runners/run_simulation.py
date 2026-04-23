@@ -395,6 +395,16 @@ def run_one(
     }
 
 
+from multiprocessing import Pool, cpu_count
+
+# ---------------------------------------------------------------------------
+# Worker for parallel runs
+# ---------------------------------------------------------------------------
+
+def _run_one_worker(args):
+    """Wrapper for run_one to be used with Pool.map"""
+    return run_one(**args)
+
 # ---------------------------------------------------------------------------
 # Multi-run averaging
 # ---------------------------------------------------------------------------
@@ -413,44 +423,33 @@ def run_scenario(
     """
     Why use this function: Orchestrates multiple simulation runs (Monte Carlo trials) 
     for a specific scenario and computes the mean and standard deviation of the CSR.
-
-    Args:
-        env (str): Environment type.
-        hotspot_cx (float): Hotspot X coordinate.
-        hotspot_cy (float): Hotspot Y coordinate.
-        rho (float): Hotspot traffic intensity ρ.
-        mode (str): Benchmark mode.
-        cm_type (CMType): Control Metric used.
-        n_runs (int): Number of runs to average.
-        verbose (bool): Whether to log progress.
-        lambda_override (Optional[float]): Custom arrival rate parameter.
-
-    Returns:
-        Dict: Aggregated results data with mean/std CSR and trajectory logs.
     """
-    all_final_csr = []
-    all_series = []
-    all_traj = []
-    all_steps = []
+    if verbose:
+        print(f"  Running {n_runs} Monte Carlo trials in parallel...")
 
+    jobs = []
     for run in range(n_runs):
-        if verbose:
-            print(f"  Run {run+1}/{n_runs} ...")
-        result = run_one(
-            env=env,
-            hotspot_cx=hotspot_cx,
-            hotspot_cy=hotspot_cy,
-            rho=rho,
-            mode=mode,
-            cm_type=cm_type,
-            seed=100 + run,
-            verbose=False,
-            lambda_override=lambda_override,
-        )
-        all_final_csr.append(result["final_csr"])
-        all_series.append(result["csr_series"])
-        all_traj.extend(result["trajectory"])
-        all_steps.append(result["steps_taken"])
+        jobs.append({
+            "env": env,
+            "hotspot_cx": hotspot_cx,
+            "hotspot_cy": hotspot_cy,
+            "rho": rho,
+            "mode": mode,
+            "cm_type": cm_type,
+            "seed": 100 + run,
+            "verbose": False,
+            "lambda_override": lambda_override,
+        })
+
+    workers = min(cpu_count(), n_runs)
+    with Pool(workers) as p:
+        results = p.map(_run_one_worker, jobs)
+
+    all_final_csr = [r["final_csr"] for r in results]
+    all_traj = []
+    for r in results:
+        all_traj.extend(r["trajectory"])
+    all_steps = [r["steps_taken"] for r in results]
 
     return {
         "mean_csr": float(np.mean(all_final_csr)),

@@ -4,13 +4,68 @@ import argparse
 import numpy as np
 import csv
 
-# Add current directory to path
-sys.path.append(os.getcwd())
-
-from runners import run_one
+from runners import run_one, parse_scenario
 from simulation.config import LAMBDA_ARRIVAL, ALGO_EPSILON, ALGO_ALPHA, ALGO_ENERGY_COST
 from simulation.algorithm import CMType
-from runners import parse_scenario
+
+from multiprocessing import Pool, cpu_count
+
+def _run_tuning_step(args):
+    """Worker for parallel tuning runs."""
+    val, scenario, mode, duration, phase1, config_lambda = args
+    env, cx, cy, rho = parse_scenario(scenario)
+    
+    # Determine parameter overrides
+    l_val = val if mode == "lambda" else config_lambda
+    a_val = val if mode == "alpha" else ALGO_ALPHA
+    e_val = val if mode == "epsilon" else ALGO_EPSILON
+    
+    # Run legacy algorithm
+    res_legacy = run_one(
+        env=env,
+        hotspot_cx=cx,
+        hotspot_cy=cy,
+        rho=rho,
+        mode="algorithm",
+        sim_duration_s=phase1 + duration,
+        phase2_start_s=phase1,
+        phase3_start_s=phase1,
+        lambda_override=float(l_val),
+        seed=100,
+        verbose=False
+    )
+    
+    # Run energy-aware algorithm
+    res_energy = run_one(
+        env=env,
+        hotspot_cx=cx,
+        hotspot_cy=cy,
+        rho=rho,
+        mode="energy_algorithm",
+        sim_duration_s=phase1 + duration,
+        phase2_start_s=phase1,
+        phase3_start_s=phase1,
+        lambda_override=float(l_val),
+        alpha_override=float(a_val),
+        epsilon_override=float(e_val),
+        seed=100,
+        verbose=False
+    )
+    
+    c_e = res_energy['final_csr']
+    c_l = res_legacy['final_csr']
+    s_e = res_energy['steps_taken']
+    s_l = res_legacy['steps_taken']
+    saved = s_l - s_e
+    
+    return {
+        "val": val,
+        "energy_csr": c_e,
+        "legacy_csr": c_l,
+        "steps_energy": s_e,
+        "steps_legacy": s_l,
+        "steps_saved": saved
+    }
 
 def run_tuning(scenario, mode, duration, start, end, steps):
     env, cx, cy, rho = parse_scenario(scenario)
@@ -24,55 +79,25 @@ def run_tuning(scenario, mode, duration, start, end, steps):
     print("-" * 100)
     
     values = np.linspace(start, end, steps)
-    results = []
-    
-    # Timing constants
     phase1 = 30.0
-    total_duration = phase1 + duration
-
-    for val in values:
-        # Determine parameter overrides
-        l_val = val if mode == "lambda" else config_lambda
-        a_val = val if mode == "alpha" else ALGO_ALPHA
-        e_val = val if mode == "epsilon" else ALGO_EPSILON
-        
-        # Run legacy algorithm
-        res_legacy = run_one(
-            env=env,
-            hotspot_cx=cx,
-            hotspot_cy=cy,
-            rho=rho,
-            mode="algorithm",
-            sim_duration_s=total_duration,
-            phase2_start_s=phase1,
-            phase3_start_s=phase1,
-            lambda_override=float(l_val),
-            seed=100,
-            verbose=False
-        )
-        
-        # Run energy-aware algorithm
-        res_energy = run_one(
-            env=env,
-            hotspot_cx=cx,
-            hotspot_cy=cy,
-            rho=rho,
-            mode="energy_algorithm",
-            sim_duration_s=total_duration,
-            phase2_start_s=phase1,
-            phase3_start_s=phase1,
-            lambda_override=float(l_val),
-            alpha_override=float(a_val),
-            epsilon_override=float(e_val),
-            seed=100,
-            verbose=False
-        )
-        
-        c_e = res_energy['final_csr']
-        c_l = res_legacy['final_csr']
-        s_e = res_energy['steps_taken']
-        s_l = res_legacy['steps_taken']
-        saved = s_l - s_e
+    
+    jobs = [
+        (val, scenario, mode, duration, phase1, config_lambda)
+        for val in values
+    ]
+    
+    workers = min(cpu_count(), len(jobs))
+    with Pool(workers) as p:
+        results_raw = p.map(_run_tuning_step, jobs)
+    
+    results = []
+    for r in results_raw:
+        val = r["val"]
+        c_e = r["energy_csr"]
+        c_l = r["legacy_csr"]
+        s_e = r["steps_energy"]
+        s_l = r["steps_legacy"]
+        saved = r["steps_saved"]
         
         print(f"{val:<12.4f} | {c_e:<12.4f} | {c_l:<12.4f} | {s_e:<10} | {s_l:<10} | {saved:<10}")
         

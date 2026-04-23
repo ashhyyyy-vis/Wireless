@@ -6,12 +6,9 @@ import os
 import sys
 import argparse
 import numpy as np
-from runners import run_one
-
-# Add current directory to path
-sys.path.append(os.getcwd())
-
-from kholo import parse_scenario
+import csv
+from multiprocessing import Pool, cpu_count
+from runners import run_one, parse_scenario
 
 def run_calib_job(args):
     scenario, lambda_val, seed, duration, phase2_start = args
@@ -50,30 +47,39 @@ def calibrate_lambda(scenario="DU-0-0-0", start=1.0, end=10.0, steps=10, runs=5,
     print(f"{'Lambda':<10} | {'Mean CSR':<12} | {'Std Dev':<10} | {'Status':<15}")
     print("-" * 60)
 
+    # Prepare all jobs upfront for maximum efficiency
+    all_jobs = []
     for lam in lambdas:
-        jobs = [(scenario, lam, 100 + i, duration, phase2_start) for i in range(runs)]
-        
-        workers = min(cpu_count(), runs)
-        with Pool(workers) as p:
-            csrs = p.map(run_calib_job, jobs)
+        for i in range(runs):
+            all_jobs.append((scenario, lam, 100 + i, duration, phase2_start))
+    
+    workers = min(cpu_count(), len(all_jobs))
+    all_results = []
+    with Pool(workers) as p:
+        for i, res in enumerate(p.imap(run_calib_job, all_jobs)):
+            all_results.append(res)
             
-        mean_csr = np.mean(csrs)
-        std_csr = np.std(csrs)
-        diff = abs(mean_csr - target_csr)
-        
-        if diff < closest_diff:
-            closest_diff = diff
-            closest_lambda = lam
-        
-        status = "CLOSEST" if lam == closest_lambda else ""
-        print(f"{lam:<10.4f} | {mean_csr:<12.4f} | {std_csr:<10.4f} | {status:<15}")
-        
-        results.append({
-            "lambda": float(lam),
-            "mean_csr": float(mean_csr),
-            "std_csr": float(std_csr),
-            "diff_from_target": float(diff)
-        })
+            if (i + 1) % runs == 0:
+                idx = i // runs
+                lam = lambdas[idx]
+                csrs = all_results[idx * runs : (idx + 1) * runs]
+                mean_csr = np.mean(csrs)
+                std_csr = np.std(csrs)
+                diff = abs(mean_csr - target_csr)
+                
+                if diff < closest_diff:
+                    closest_diff = diff
+                    closest_lambda = lam
+                
+                status = "CLOSEST" if lam == closest_lambda else ""
+                print(f"{lam:<10.4f} | {mean_csr:<12.4f} | {std_csr:<10.4f} | {status:<15}")
+                
+                results.append({
+                    "lambda": float(lam),
+                    "mean_csr": float(mean_csr),
+                    "std_csr": float(std_csr),
+                    "diff_from_target": float(diff)
+                })
 
     # Save to results
     os.makedirs("results", exist_ok=True)

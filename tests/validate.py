@@ -26,7 +26,7 @@ for mode in ("no_drone", "static_drone", "algorithm"):
         mode=mode,
         sim_duration_s=TOTAL,
         phase2_start_s=PHASE1,
-        seed=99,
+        seed=100,
         lambda_override=LAM,
         verbose=True,
     )

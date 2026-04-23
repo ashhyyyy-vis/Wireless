@@ -3,7 +3,7 @@ import csv
 import numpy as np
 from multiprocessing import Pool, cpu_count
 
-from . import run_one
+from .run_simulation import run_one
 from simulation.config import LAMBDA_ARRIVAL
 from simulation.algorithm import CMType
 
@@ -35,7 +35,10 @@ def parse_scenario(s: str):
 # Worker
 # -----------------------------
 def _run_job(args):
-    mode, cm, seed, env, cx, cy, rho, total, phase1, lam = args
+    """
+    Worker function. Now returns metadata to identify the result in the flattened pool.
+    """
+    scenario, mode_label, mode, cm, seed, env, cx, cy, rho, total, phase1, lam = args
 
     result = run_one(
         env=env,
@@ -51,47 +54,20 @@ def _run_job(args):
         verbose=False,
     )
 
-    return result["final_csr"], result["steps_taken"]
-
-
-# -----------------------------
-# Batch runner
-# -----------------------------
-def _run_batch(mode, env, cx, cy, rho, cm, n_runs, workers, total, phase1, lam):
-    name = mode if cm is None else cm.name
-
-    jobs = [
-        (mode, cm, 100 + i, env, cx, cy, rho, total, phase1, lam)
-        for i in range(n_runs)
-    ]
-
-    with Pool(workers) as p:
-        results = p.map(_run_job, jobs)
-    
-    csrs = [r[0] for r in results]
-    steps = [r[1] for r in results]
-
     return {
-        "cm": name,
-        "mean_csr": float(np.mean(csrs)),
-        "std_csr": float(np.std(csrs)),
-        "mean_steps": float(np.mean(steps)),
+        "scenario": scenario,
+        "mode_label": mode_label,
+        "csr": result["final_csr"],
+        "steps": result["steps_taken"]
     }
 
 
-# -----------------------------
-# PUBLIC FUNCTION
-# -----------------------------
-def _write_scenario_result(scenario, scenario_results, out_file):
+def _write_scenario_result(scenario, scenario_results, out_file, include_energy=False):
     """
     Write a single scenario's results to CSV file.
-    
-    Args:
-        scenario (str): Scenario identifier
-        scenario_results (dict): Results for all modes of this scenario
-        out_file (str): Output CSV path
     """
     import os
+    import csv
     
     # Ensure directory exists
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
@@ -100,7 +76,9 @@ def _write_scenario_result(scenario, scenario_results, out_file):
     file_exists = os.path.exists(out_file)
     
     # Prepare CSV headers
-    headers = ["scenario", "no_drone", "static_drone"] + [f"CM{i}" for i in range(1, 8)] + ["Energy_CM7", "Energy_Steps"]
+    headers = ["scenario", "no_drone", "static_drone"] + [f"CM{i}" for i in range(1, 8)]
+    if include_energy:
+        headers += ["Energy_CM7", "Energy_Steps"]
     
     with open(out_file, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=headers)
@@ -114,7 +92,11 @@ def _write_scenario_result(scenario, scenario_results, out_file):
         
         # Add all metrics to row
         for metric_name in headers[1:]:  # Skip scenario column
-            row[metric_name] = f"{scenario_results.get(metric_name, 0.0):.6f}"
+            val = scenario_results.get(metric_name)
+            if val is not None:
+                row[metric_name] = f"{val:.6f}"
+            else:
+                row[metric_name] = "0.000000"
         
         writer.writerow(row)
         print(f"Scenario {scenario} results appended to {out_file}")
@@ -125,85 +107,113 @@ def run_all_scenarios(
     out_file="results/all_scenarios_results.csv",
     n_runs=5,
     lambda_val=None,
-    phase1=30,
-    phase3=2 * 60,
+    phase1=30*60,
+    phase3=3600,
     workers=None,
+    include_energy=False,
 ):
     """
-    Run all scenarios and save results to CSV after each scenario completion.
-
-    Args:
-        scenarios (list[str]): List like ["DU-100-60-4", ...]
-        out_file (str): Output CSV path
-        n_runs (int): Runs per config
-        lambda_val (float): Traffic intensity
-        phase1 (int): Phase 1 duration
-        phase3 (int): Phase 3 duration
-        workers (int): Number of parallel workers
-
-    Returns:
-        list[dict]: results
+    Run all scenarios in a single flattened pool for 100% CPU utilization.
+    Saves results to CSV after each scenario completion.
     """
-
-    total = phase1 + phase3
-    workers = workers or max(1, cpu_count() - 1)
-
-    all_results = []
-
+    import time
+    total_sim_time = phase1 + phase3
+    workers = workers or max(1, cpu_count())
+    
+    # 1. Build all jobs
+    all_jobs = []
+    expected_jobs_per_scenario = {}
+    
     for scenario in scenarios:
-        print("\n" + "=" * 60)
-        print(f"Scenario: {scenario}")
-        print("=" * 60)
-
         env, cx, cy, rho = parse_scenario(scenario)
         current_lambda = lambda_val if lambda_val is not None else LAMBDA_ARRIVAL[env]
-
-        # Collect results for this scenario
-        scenario_results = {}
-
-        # Baselines
-        for mode in ["no_drone", "static_drone"]:
-            res = _run_batch(
-                mode, env, cx, cy, rho,
-                cm=None,
-                n_runs=n_runs,
-                workers=workers,
-                total=total,
-                phase1=phase1,
-                lam=current_lambda
-            )
-            all_results.append({"scenario": scenario, **res})
-            scenario_results[res["cm"]] = res["mean_csr"]
-        # CM metrics (Legacy)
+        
+        # Define modes for this scenario
+        modes = [
+            ("no_drone", "no_drone", None),
+            ("static_drone", "static_drone", None),
+        ]
         for cm in CMType:
-            res = _run_batch(
-                "algorithm", env, cx, cy, rho,
-                cm=cm,
-                n_runs=n_runs,
-                workers=workers,
-                total=total,
-                phase1=phase1,
-                lam=current_lambda
-            )
-            all_results.append({"scenario": scenario, **res})
-            scenario_results[res["cm"]] = res["mean_csr"]
+            modes.append((cm.name, "algorithm", cm))
+        
+        if include_energy:
+            modes.append(("Energy_CM7", "energy_algorithm", CMType.CM7))
+            
+        expected_jobs_per_scenario[scenario] = len(modes) * n_runs
+        
+        for mode_label, mode, cm in modes:
+            for i in range(n_runs):
+                all_jobs.append((
+                    scenario, mode_label, mode, cm, 100 + i,
+                    env, cx, cy, rho, total_sim_time, phase1, current_lambda
+                ))
 
-        # Energy Aware CM7
-        res_energy = _run_batch(
-            "energy_algorithm", env, cx, cy, rho,
-            cm=CMType.CM7,
-            n_runs=n_runs,
-            workers=workers,
-            total=total,
-            phase1=phase1,
-            lam=current_lambda
-        )
-        all_results.append({"scenario": scenario, **res_energy})
-        scenario_results["Energy_CM7"] = res_energy["mean_csr"]
-        scenario_results["Energy_Steps"] = res_energy["mean_steps"]
+    # 2. Process all jobs in parallel
+    print("=" * 60)
+    print(f"Flattened Batch Runner: {len(scenarios)} scenarios | {len(all_jobs)} total jobs")
+    print(f"Using {workers} parallel workers")
+    print("=" * 60)
 
-        # Write this scenario's results immediately
-        _write_scenario_result(scenario, scenario_results, out_file)
+    # Tracking dictionaries
+    # scenario_data[scenario][mode_label] = {"csrs": [], "steps": []}
+    scenario_data = {s: {} for s in scenarios}
+    jobs_finished_per_scenario = {s: 0 for s in scenarios}
+    all_final_results = [] # To preserve return format
 
-    print(f"\nAll scenarios completed. Results in {out_file}")
-    return all_results
+    completed_total = 0
+    start_time = time.time()
+
+    with Pool(workers) as p:
+        # Use imap_unordered for maximum throughput
+        for res in p.imap_unordered(_run_job, all_jobs):
+            scenario = res["scenario"]
+            label = res["mode_label"]
+            csr = res["csr"]
+            steps = res["steps"]
+            
+            # Update data
+            if label not in scenario_data[scenario]:
+                scenario_data[scenario][label] = {"csrs": [], "steps": []}
+            
+            scenario_data[scenario][label]["csrs"].append(csr)
+            scenario_data[scenario][label]["steps"].append(steps)
+            
+            jobs_finished_per_scenario[scenario] += 1
+            completed_total += 1
+            
+            # Print progress bar or log
+            if completed_total % 5 == 0 or completed_total == len(all_jobs):
+                elapsed = time.time() - start_time
+                print(f" Progress: {completed_total}/{len(all_jobs)} jobs done | {elapsed:.1f}s elapsed")
+
+            # 3. Check if a scenario is fully completed
+            if jobs_finished_per_scenario[scenario] == expected_jobs_per_scenario[scenario]:
+                print(f"\n[Scenario Complete] {scenario}")
+                
+                # Compute means for CSV
+                scenario_results_summary = {}
+                for lbl, data in scenario_data[scenario].items():
+                    mean_csr = float(np.mean(data["csrs"]))
+                    std_csr = float(np.std(data["csrs"]))
+                    mean_steps = float(np.mean(data["steps"]))
+                    
+                    if lbl == "Energy_CM7":
+                        scenario_results_summary["Energy_CM7"] = mean_csr
+                        scenario_results_summary["Energy_Steps"] = mean_steps
+                    else:
+                        scenario_results_summary[lbl] = mean_csr
+                    
+                    # Store in the flat return format as well
+                    all_final_results.append({
+                        "scenario": scenario,
+                        "cm": lbl,
+                        "mean_csr": mean_csr,
+                        "std_csr": std_csr,
+                        "mean_steps": mean_steps
+                    })
+                
+                # Write to CSV
+                _write_scenario_result(scenario, scenario_results_summary, out_file, include_energy=include_energy)
+
+    print(f"\nAll {len(scenarios)} scenarios completed. Final CSV: {out_file}")
+    return all_final_results

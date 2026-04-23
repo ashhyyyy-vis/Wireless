@@ -133,10 +133,14 @@ class RadioEngine:
         """
         if not ue.terrestrial_rsrp_cache:
             # Populate cache if empty
+            total_w = 0.0
             for cell in self.net.active_cells():
                 dbm = self.cell_rsrp(cell, ue)
+                w = self.dbm_to_watts(dbm)
                 ue.terrestrial_rsrp_cache[cell.cell_id] = dbm
-                ue.terrestrial_watts_cache[cell.cell_id] = self.dbm_to_watts(dbm)
+                ue.terrestrial_watts_cache[cell.cell_id] = w
+                total_w += w
+            ue.terrestrial_total_watts = total_w
         
         # Start with cached terrestrial values
         table = ue.terrestrial_rsrp_cache.copy()
@@ -230,18 +234,23 @@ class RadioEngine:
         signal_dbm = rsrp_table.get(serving_cell_id, -math.inf)
         signal_w   = self.dbm_to_watts(signal_dbm)
 
-        interf_w = 0.0
-        for cell_id, rsrp_dbm in rsrp_table.items():
-            if cell_id == serving_cell_id:
-                continue
+        # O(1) interference calculation using pre-calculated terrestrial sum
+        # Interf = (Total terrestrial - serving terrestrial) + (Drone power if drone is not server)
+        
+        # 1. Start with total terrestrial power
+        total_interf_w = ue.terrestrial_total_watts
+        
+        # 2. Subtract serving cell if it's terrestrial
+        serving_is_drone = (serving_cell_id == self.drone.cell_id)
+        if not serving_is_drone:
+            total_interf_w -= ue.terrestrial_watts_cache.get(serving_cell_id, 0.0)
             
-            # Optimization: Use cached Watts for terrestrial cells
-            if cell_id in ue.terrestrial_watts_cache:
-                interf_w += ue.terrestrial_watts_cache[cell_id]
-            else:
-                interf_w += self.dbm_to_watts(rsrp_dbm)
+        # 3. Add drone interference if drone is active and not serving this UE
+        if self.drone.active and not serving_is_drone:
+            drone_dbm = rsrp_table.get(self.drone.cell_id, -math.inf)
+            total_interf_w += self.dbm_to_watts(drone_dbm)
 
-        sinr_w = signal_w / (interf_w + NOISE_FLOOR_W)
+        sinr_w = signal_w / (max(0, total_interf_w) + NOISE_FLOOR_W)
         if sinr_w <= 0:
             return -math.inf
         return 10.0 * math.log10(sinr_w)

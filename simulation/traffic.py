@@ -36,6 +36,8 @@ class UE:
     terrestrial_rsrp_cache: Dict[int, float] = field(default_factory=dict)
     # Cached linear power values: cell_id -> Watts
     terrestrial_watts_cache: Dict[int, float] = field(default_factory=dict)
+    # Sum of all terrestrial watts for O(1) SINR calculation
+    terrestrial_total_watts: float = 0.0
 
     @property
     def departure_time(self) -> float:

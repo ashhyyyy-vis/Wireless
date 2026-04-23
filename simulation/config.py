@@ -137,7 +137,7 @@ CALL_DURATION_MEAN_S = 120.0      # mean call duration (τ), exponential
 # Arrival rate λ (calls/s over the whole cluster area) — tuned per env.
 # Set so that healthy CSR ≈ 98 %.  Adjust during calibration.
 LAMBDA_ARRIVAL = {
-    "urban": 5,   # starting guess; calibrate in Phase I
+    "urban": 6.5,   # starting guess; calibrate in Phase I
     "rural": 1.3,
 }
 

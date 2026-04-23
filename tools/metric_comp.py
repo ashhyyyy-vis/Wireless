@@ -1,14 +1,11 @@
 import sys
 import csv
-import time
-import math
+import time as wall_time
 import argparse
 import numpy as np
 from multiprocessing import Pool, cpu_count
 
-sys.path.insert(0, ".")
-
-from runners import run_one
+from runners import run_one, parse_scenario
 from simulation.algorithm import CMType
 from simulation.config import LAMBDA_ARRIVAL
 
@@ -39,7 +36,7 @@ def run_job(args):
 # -----------------------------
 # Batch runner
 # -----------------------------
-def run_batch(mode, env, cx, cy, rho, total, phase1, lam, n_runs, workers, cm=None):
+def run_batch(pool, mode, env, cx, cy, rho, total, phase1, lam, n_runs, cm=None):
     name = mode if cm is None else cm.name
     print(f"\n>> {name}")
 
@@ -48,8 +45,7 @@ def run_batch(mode, env, cx, cy, rho, total, phase1, lam, n_runs, workers, cm=No
         for i in range(n_runs)
     ]
 
-    with Pool(workers) as p:
-        csr_vals = p.map(run_job, jobs)
+    csr_vals = pool.map(run_job, jobs)
 
     mean = float(np.mean(csr_vals))
     std  = float(np.std(csr_vals))
@@ -62,35 +58,6 @@ def run_batch(mode, env, cx, cy, rho, total, phase1, lam, n_runs, workers, cm=No
         "std_csr": std,
     }
 
-
-# -----------------------------
-# Scenario parser
-# -----------------------------
-def parse_scenario(s: str):
-    parts = s.split("-")
-    if len(parts) != 4:
-        raise ValueError(f"Invalid scenario format: {s}")
-
-    env_code, d_str, phi_str, rho_str = parts
-
-    env_map = {
-        "DU": "urban",
-        "RU": "rural",
-    }
-
-    if env_code not in env_map:
-        raise ValueError(f"Unknown env code: {env_code}")
-
-    env = env_map[env_code]
-
-    d = float(d_str)
-    phi = math.radians(float(phi_str))
-    rho = float(rho_str)
-
-    cx = d * math.cos(phi)
-    cy = d * math.sin(phi)
-
-    return env, cx, cy, rho
 
 
 # -----------------------------
@@ -107,12 +74,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     np.random.seed(100)
-    start_time = time.time()
+    start_time = wall_time.time()
 
     env, cx, cy, rho = parse_scenario(args.scenario)
     lam = args.lambda_ if args.lambda_ is not None else LAMBDA_ARRIVAL[env]
     total_duration = args.phase1 + args.phase3
-    num_workers = max(1, cpu_count() - 1)
+    num_workers = max(1, cpu_count())
 
     print("=" * 60)
     print(f"Scenario: {args.scenario}")
@@ -122,17 +89,18 @@ if __name__ == "__main__":
 
     results = []
 
-    # -----------------------------
-    # Baselines
-    # -----------------------------
-    results.append(run_batch("no_drone", env, cx, cy, rho, total_duration, args.phase1, lam, args.runs, num_workers))
-    results.append(run_batch("static_drone", env, cx, cy, rho, total_duration, args.phase1, lam, args.runs, num_workers))
+    with Pool(num_workers) as pool:
+        # -----------------------------
+        # Baselines
+        # -----------------------------
+        results.append(run_batch(pool, "no_drone", env, cx, cy, rho, total_duration, args.phase1, lam, args.runs))
+        results.append(run_batch(pool, "static_drone", env, cx, cy, rho, total_duration, args.phase1, lam, args.runs))
 
-    # -----------------------------
-    # All CM metrics
-    # -----------------------------
-    for cm in CMType:
-        results.append(run_batch("algorithm", env, cx, cy, rho, total_duration, args.phase1, lam, args.runs, num_workers, cm))
+        # -----------------------------
+        # All CM metrics
+        # -----------------------------
+        for cm in CMType:
+            results.append(run_batch(pool, "algorithm", env, cx, cy, rho, total_duration, args.phase1, lam, args.runs, cm))
 
     # -----------------------------
     # Save CSV
@@ -152,4 +120,4 @@ if __name__ == "__main__":
             })
 
     print(f"\nSaved -> {out_file}")
-    print(f"{time.time() - start_time:.2f} seconds run time")
+    print(f"{wall_time.time() - start_time:.2f} seconds run time")

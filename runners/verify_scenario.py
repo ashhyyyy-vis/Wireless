@@ -1,8 +1,29 @@
 import sys
 import math
+import time
+from multiprocessing import Pool, cpu_count
 from .kholo import parse_scenario
 from . import run_one
 from simulation.algorithm import CMType
+
+def _verify_worker(args):
+    """Worker function for parallel verification."""
+    env, cx, cy, rho, mode, cm, label, total, phase1 = args
+    res = run_one(
+        env=env,
+        hotspot_cx=cx,
+        hotspot_cy=cy,
+        rho=rho,
+        mode=mode,
+        cm_type=cm,
+        sim_duration_s=total,
+        phase2_start_s=phase1,
+        seed=100, # Deterministic for verification
+        verbose=False
+    )
+    csr = res["final_csr"]
+    steps = res.get("steps_taken", 0)
+    return label, csr, steps
 
 def verify_singular(scenario_str: str):
     print("="*60)
@@ -33,26 +54,20 @@ def verify_singular(scenario_str: str):
     # Add Energy Aware Algorithm (usually CM7)
     jobs.append(("energy_algorithm", CMType.CM7, "Energy Algo (CM7)"))
 
-    results = []
-    
+    # Prepare task list for multiprocessing
+    task_args = []
     for mode, cm, label in jobs:
-        print(f"Running {label}...", end="", flush=True)
-        res = run_one(
-            env=env,
-            hotspot_cx=cx,
-            hotspot_cy=cy,
-            rho=rho,
-            mode=mode,
-            cm_type=cm,
-            sim_duration_s=TOTAL,
-            phase2_start_s=PHASE1,
-            seed=42, # Deterministic for verification
-            verbose=False
-        )
-        csr = res["final_csr"]
-        steps = res.get("steps_taken", 0)
-        results.append((label, csr, steps))
-        print(f" DONE (CSR: {csr:.4f}, Steps: {steps})")
+        task_args.append((env, cx, cy, rho, mode, cm, label, TOTAL, PHASE1))
+
+    results = []
+    print(f"Running {len(task_args)} modes in parallel...")
+    print("-" * 60)
+    
+    workers = min(cpu_count(), len(task_args))
+    with Pool(workers) as p:
+        for label, csr, steps in p.imap(_verify_worker, task_args):
+            results.append((label, csr, steps))
+            print(f" DONE: {label:<25} | CSR: {csr:.4f} | Steps: {steps}")
 
     print("\n" + "="*60)
     print(f"{'Label':<25} | {'CSR':<10} | {'Steps':<10}")
@@ -66,4 +81,7 @@ if __name__ == "__main__":
         print("Usage: python3 -m runners.verify_scenario <scenario_string>")
         print("Example: python3 -m runners.verify_scenario DU-100-60-4")
     else:
+        start=time.time()
         verify_singular(sys.argv[1])
+        end=time.time()
+        print(f"Time taken: {end-start} seconds")

@@ -1,7 +1,7 @@
 import os
 import csv
 import argparse
-from main_convergence import generate_convergence_data
+from .main_convergence import generate_convergence_data
 from simulation.cases import convergence_cases
 
 def run_all_convergence(mode="algorithm", n_runs=5, lambda_val=None, base_seed=100):
