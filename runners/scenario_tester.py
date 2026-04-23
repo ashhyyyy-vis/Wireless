@@ -1,9 +1,10 @@
 import sys
 import math
 import time
+import argparse
 from multiprocessing import Pool, cpu_count
-from .kholo import parse_scenario
-from . import run_one
+from .simulation_batch import parse_scenario
+from .simulation_core import run_one
 from simulation.algorithm import CMType
 
 def _verify_worker(args):
@@ -76,12 +77,15 @@ def verify_singular(scenario_str: str):
         print(f"{label:<25} | {csr:<10.4f} | {steps:<10}")
     print("="*60)
 
+def run_verify_scenario(parser: argparse.ArgumentParser):
+    parser.add_argument("scenario", help="Scenario string (e.g. DU-100-60-4)")
+    args = parser.parse_args()
+    
+    start = time.time()
+    verify_singular(args.scenario)
+    end = time.time()
+    print(f"Time taken: {end-start:.2f} seconds")
+
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python3 -m runners.verify_scenario <scenario_string>")
-        print("Example: python3 -m runners.verify_scenario DU-100-60-4")
-    else:
-        start=time.time()
-        verify_singular(sys.argv[1])
-        end=time.time()
-        print(f"Time taken: {end-start} seconds")
+    parser = argparse.ArgumentParser()
+    run_verify_scenario(parser)

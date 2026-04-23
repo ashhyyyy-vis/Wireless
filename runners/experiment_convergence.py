@@ -2,9 +2,9 @@ import os
 import csv
 import numpy as np
 from multiprocessing import Pool, cpu_count
-from . import run_one
+from .simulation_core import run_one
 from simulation.config import LAMBDA_ARRIVAL
-from .kholo import parse_scenario
+from .simulation_batch import parse_scenario
 
 def _run_single(args):
     """Worker for parallel simulation runs."""
@@ -88,9 +88,7 @@ def generate_convergence_data(scenario, mode="algorithm", n_runs=5, lambda_val=N
     
     return out_file, conv_time, final_val
 
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="Convergence Data Generator")
+def run_convergence_analysis(parser: argparse.ArgumentParser):
     parser.add_argument("--scenario", required=True, help="Scenario (e.g. DU-100-60-4)")
     parser.add_argument("--mode", default="algorithm", choices=["algorithm", "energy_algorithm"])
     parser.add_argument("--runs", type=int, default=5, help="Number of Monte Carlo trials")
@@ -98,5 +96,4 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=100, help="Base random seed")
     
     args = parser.parse_args()
-    
     generate_convergence_data(args.scenario, args.mode, args.runs, drone_delay_s=args.delay, base_seed=args.seed)

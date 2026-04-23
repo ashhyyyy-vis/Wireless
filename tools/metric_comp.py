@@ -63,8 +63,7 @@ def run_batch(pool, mode, env, cx, cy, rho, total, phase1, lam, n_runs, cm=None)
 # -----------------------------
 # MAIN
 # -----------------------------
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Metric Comparison Script")
+def run_metric_comp(parser: argparse.ArgumentParser):
     parser.add_argument("--scenario", default="RU-0-60-25", help="Scenario identifier (e.g. RU-0-60-25)")
     parser.add_argument("--lambda_", type=float, default=None, help="Override arrival rate lambda")
     parser.add_argument("--runs", type=int, default=3, help="Number of simulation runs")
@@ -120,4 +119,8 @@ if __name__ == "__main__":
             })
 
     print(f"\nSaved -> {out_file}")
-    print(f"{wall_time.time() - start_time:.2f} seconds run time")
+    print(f"{wall_time.time() - start_time:.2f} seconds run time")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Metric Comparison Script")
+    run_metric_comp(parser)

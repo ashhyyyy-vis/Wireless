@@ -78,8 +78,7 @@ def calibrate_lambda(scenario="DU-0-0-0", start=1.0, end=10.0, steps=10, runs=5,
     print("-" * 60)
     print(f"Calibration data saved to {out_file}")
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Lambda Calibration (No-Drone)")
+def run_calibrate_no_drone(parser: argparse.ArgumentParser):
     parser.add_argument("--scenario", default="DU-0-0-0", help="Scenario string (e.g. DU-100-60-4)")
     parser.add_argument("--start", type=float, default=1.0)
     parser.add_argument("--end", type=float, default=10.0)
@@ -88,7 +87,7 @@ if __name__ == "__main__":
     parser.add_argument("--duration", type=float, default=1800.0)
     
     args = parser.parse_args()
-    start=time.time()
+    start_time = time.time()
     calibrate_lambda(
         scenario=args.scenario, 
         start=args.start, 
@@ -97,5 +96,9 @@ if __name__ == "__main__":
         runs=args.runs, 
         duration=args.duration
     )
-    end=time.time()
-    print(f"Total time taken: {end-start}")
+    end_time = time.time()
+    print(f"Total time taken: {end_time - start_time:.2f}s")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Lambda Calibration (No-Drone)")
+    run_calibrate_no_drone(parser)

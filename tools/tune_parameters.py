@@ -121,8 +121,7 @@ def run_tuning(scenario, mode, duration, start, end, steps):
         writer.writerows(results)
     print(f"Results saved to {out_file}")
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Unified Tuning Script for Drone Positioning")
+def run_tune_parameters(parser: argparse.ArgumentParser):
     parser.add_argument("--scenario", required=True, help="Scenario (e.g. DU-100-60-4)")
     parser.add_argument("--mode", choices=["lambda", "alpha", "epsilon"], required=True)
     parser.add_argument("--duration", type=float, default=300.0, help="Phase 3 duration (s)")
@@ -145,3 +144,7 @@ if __name__ == "__main__":
     end = args.end if args.end is not None else defaults[args.mode][1]
     
     run_tuning(args.scenario, args.mode, args.duration, start, end, args.steps)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Unified Tuning Script for Drone Positioning")
+    run_tune_parameters(parser)

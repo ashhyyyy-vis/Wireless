@@ -23,8 +23,7 @@ def run_calib_job(args):
     )
     return res['final_csr']
 
-def main():
-    parser = argparse.ArgumentParser(description="Calibrate lambda for rural environment")
+def run_calibrate_rural(parser: argparse.ArgumentParser):
     parser.add_argument("--start", type=float, default=1.0)
     parser.add_argument("--end", type=float, default=6.0)
     parser.add_argument("--step", type=float, default=0.25)
@@ -74,4 +73,5 @@ def main():
     print(f"\nCalibration data saved to {out_file}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Calibrate lambda for rural environment")
+    run_calibrate_rural(parser)

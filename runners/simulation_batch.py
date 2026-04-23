@@ -3,7 +3,7 @@ import csv
 import numpy as np
 from multiprocessing import Pool, cpu_count
 
-from .run_simulation import run_one
+from .simulation_core import run_one
 from simulation.config import LAMBDA_ARRIVAL
 from simulation.algorithm import CMType
 

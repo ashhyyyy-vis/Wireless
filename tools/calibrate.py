@@ -96,8 +96,7 @@ def calibrate_lambda(scenario="DU-0-0-0", start=1.0, end=10.0, steps=10, runs=5,
     print(f"CSR at recommended lambda: {np.mean([r['mean_csr'] for r in results if abs(r['lambda'] - closest_lambda) < 0.001]):.4f}")
     print(f"Difference from target: {closest_diff:.4f}")
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Lambda Calibration (Failed Site Scenario)")
+def run_calibrate(parser: argparse.ArgumentParser):
     parser.add_argument("--scenario", default="DU-0-0-0", help="Scenario string (e.g. DU-100-60-4)")
     parser.add_argument("--start", type=float, default=1.0, help="Start lambda value")
     parser.add_argument("--end", type=float, default=10.0, help="End lambda value")
@@ -119,3 +118,7 @@ if __name__ == "__main__":
         phase2_start=args.phase2_start,
         target_csr=args.target_csr
     )
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Lambda Calibration (Failed Site Scenario)")
+    run_calibrate(parser)
