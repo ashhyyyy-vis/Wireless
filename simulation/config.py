@@ -166,7 +166,7 @@ CONTROL_INTERVAL_S = MEASUREMENT_PERIOD_S + HANDOVER_TTT_S
 
 # Energy-aware algorithm parameters
 ALGO_ENERGY_COST = 0.01          # Energy cost per step (Energy)
-ALGO_ALPHA = 1.0                # Weighting factor (a)
+ALGO_ALPHA = 1.3                # Weighting factor (a)
 ALGO_EPSILON = 0.001            # Minimum improvement (ε)
 
 # ---------------------------------------------------------------------------

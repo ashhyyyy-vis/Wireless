@@ -6,6 +6,7 @@ from multiprocessing import Pool, cpu_count
 from .simulation_core import run_one
 from simulation.config import LAMBDA_ARRIVAL, ALGO_ALPHA, ALGO_EPSILON, ALGO_ENERGY_COST
 from .simulation_batch import parse_scenario
+from simulation.cases import cases
 
 # Define a representative subset for energy comparison
 DEFAULT_SUBSET = [
@@ -46,7 +47,11 @@ def run_energy_job(args):
     return res["final_csr"], res["steps_taken"]
 
 def compare_energy_aware(scenarios=None, n_runs=3, lambda_val=None, base_seed=100):
-    scenarios = scenarios or DEFAULT_SUBSET
+    if scenarios == ["all"] or scenarios == "all":
+        scenarios = [s for case_list in cases.values() for s in case_list]
+    else:
+        scenarios = scenarios or DEFAULT_SUBSET
+    
     results = []
 
     print("=" * 100)
