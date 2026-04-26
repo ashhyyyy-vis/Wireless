@@ -21,11 +21,17 @@ if __name__ == "__main__":
             run_convergence_analysis(parser)
         case 3:
             from .experiment_energy import compare_energy_aware
-            # Case 3 has its own arg parsing logic if needed, but we can just use defaults or add more
             parser.add_argument("--runs", type=int, default=3)
             parser.add_argument("--scenarios", nargs="+")
+            parser.add_argument("--duration", type=float, default=5400.0)
+            parser.add_argument("--warmup", type=float, default=None)
             args = parser.parse_args()
-            compare_energy_aware(scenarios=args.scenarios, n_runs=args.runs)
+            compare_energy_aware(
+                scenarios=args.scenarios, 
+                n_runs=args.runs,
+                phase1=args.warmup,
+                total=args.duration
+            )
         case 4:
             from .experiment_convergence import run_convergence_analysis
             # For case 4, we want to force mode="energy_algorithm"

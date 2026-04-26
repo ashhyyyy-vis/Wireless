@@ -1,0 +1,48 @@
+Listed directory docs
+Viewed instructions.md:1-101
+
+Based on `docs/instructions.md`, you can tune **Alpha ($a$)** and **Epsilon ($\epsilon$)** efficiently using the built-in **Parameter Tuning Tool** (Tool 3).
+
+This tool performs a **parameter sweep**, automatically running simulations across a range of values to find where the performance (CSR vs. Energy steps) is most optimal.
+
+### 1. Tuning Alpha ($a$)
+Alpha weights the "cost" of movement. A higher alpha makes the drone more conservative (saves energy but moves less).
+*   **Purpose**: Balance energy saving (steps taken) vs. CSR gain.
+*   **Efficient Command**:
+    ```bash
+    python -m tools.main --tool 3 --scenario DU-100-60-8 --mode alpha --start 0.01 --end 5.0 --steps 10
+    ```
+
+### 2. Tuning Epsilon ($\epsilon$)
+Epsilon defines the "minimum improvement" required to justify a move. It prevents the drone from oscillating or moving for negligible gains.
+*   **Purpose**: Stabilize the drone once it reaches the peak and prevent "jitter."
+*   **Efficient Command**:
+    ```bash
+    python -m tools.main --tool 3 --scenario DU-100-60-8 --mode epsilon --start 0.0001 --end 0.01 --steps 10
+    ```
+
+---
+
+### Efficient Tuning Strategy
+To get the best results quickly without running 100 simulations, follow this workflow:
+
+1.  **Step 1: Tune Alpha First**
+    *   Set Epsilon to a small fixed value (e.g., `0.001`).
+    *   Run a sweep on Alpha from `0.1` to `2.0`.
+    *   **Goal**: Find the highest Alpha that **doesn't** significantly drop the CSR. This is your "efficiency sweet spot."
+
+2.  **Step 2: Tune Epsilon for Stability**
+    *   Lock the Alpha you found in Step 1.
+    *   Run a narrow sweep on Epsilon (e.g., `0.0001` to `0.005`).
+    *   **Goal**: Check the **convergence plots**. Look for the Epsilon value that results in the **flattest** line after 1000 seconds. This indicates the drone has "settled" and stopped jittering.
+
+3.  **Step 3: Verification**
+    *   Once you have your $(a, \epsilon)$ pair, run **Experiment 3** (Energy Gains Comparison) to see how many total steps you've saved compared to the legacy algorithm:
+      ```bash
+      python -m runners.entry --experiment 3 --runs 5
+      ```
+
+### Summary of Flags for Tool 3:
+*   `--scenario`: Use a high-load case (like `DU-100-60-8`) for tuning, as the drone movement is most sensitive there.
+*   `--start` / `--end`: The range to test.
+*   `--steps`: Number of intervals (10 is usually enough for a first pass).
