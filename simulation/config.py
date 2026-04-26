@@ -138,7 +138,7 @@ CALL_DURATION_MEAN_S = 120.0      # mean call duration (τ), exponential
 # Set so that healthy CSR ≈ 98 %.  Adjust during calibration.
 LAMBDA_ARRIVAL = {
     "urban": 6.5,   # starting guess; calibrate in Phase I
-    "rural": 1.3,
+    "rural": 2.3,
 }
 
 # Hotspot
