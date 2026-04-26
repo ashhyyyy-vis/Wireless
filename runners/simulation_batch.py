@@ -118,7 +118,7 @@ def run_all_scenarios(
     """
     import time
     total_sim_time = phase1 + phase3
-    workers = workers or max(1, cpu_count())
+    workers = workers or max(1, cpu_count() - 3)
     
     # 1. Build all jobs
     all_jobs = []
