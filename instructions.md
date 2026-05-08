@@ -1,7 +1,7 @@
 # Drone-BS Online Positioning Simulation: Usage Instructions
 
 This document explains how to use the various scripts provided in the `choice_scarf` project.
-Note: Since the project is now structured as a package, all scripts should be run from the **project root** using the `-m` (module) flag.
+Note: Since the project is structured as a package, all scripts should be run from the **project root** using the `-m` (module) flag. Running environment is assumed to be linux-based.
 
 ---
 
@@ -9,7 +9,7 @@ Note: Since the project is now structured as a package, all scripts should be ru
   This is the primary entry point for running all major simulation experiments. It uses an `--experiment` flag to decide which research module to run.
 
   ### Experiment 1: Metric Comparison (Full Research Battery)
-  Runs the complete set of scenarios (48 total) or a specific case (1-6) defined in the research paper.
+  Runs the complete set of scenarios (44 total) or a specific case (1-6) defined in the simulation/cases.py.
   * **Run a specific Case** (1-6):
     ```bash
     python3 -m runners.entry --experiment 1 <case_number>
@@ -38,17 +38,6 @@ Note: Since the project is now structured as a package, all scripts should be ru
     # Example: python3 -m runners.entry --experiment 3 --runs 3
     ```
   * **Output**: Comparative report in `results/energy_comparison_report.csv`.
-
-  ### Experiment 4: Convergence on Energy-Aware Algorithm
-  Analyzes stabilization for a specific scenario using the energy-aware algorithm.
-  * **Usage**:
-    ```bash
-    python3 -m runners.entry --experiment 4 --scenario <ID> --runs <n>
-    # Example: python3 -m runners.entry --experiment 4 --scenario DU-100-60-4 --runs 5
-    ```
-  * **Output**: Time-series CSV in `results/convergence_energy_algorithm_<scenario>.csv`.
-
-  ---
 
 ## 2. Universal Tools Dispatcher (`tools/main.py`)
 Provides a centralized way to access various utility and diagnostic tools.

@@ -1,2 +1,0 @@
-urban_lambda=8.5
-rural_lambda=2.5
