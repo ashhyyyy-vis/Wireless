@@ -134,13 +134,46 @@ Since UAVs are inherently battery-constrained systems, frequent movement can sig
 \chapter{Literature Review}
 
 \section{Base Paper Overview}
-% Discuss base paper
+
+The primary reference for this work is the paper titled \textit{“Online Positioning of a Drone-Mounted Base Station in Emergency Scenarios”}. :contentReference[oaicite:0]{index=0} The paper proposes a real-time, data-driven positioning algorithm for UAV-mounted base stations operating in emergency communication scenarios such as natural disasters, infrastructure failures, and sudden traffic hotspot events.
+
+The base paper addresses the problem of dynamically positioning a drone-mounted base station in order to restore wireless coverage and improve network capacity when terrestrial infrastructure becomes unavailable or overloaded. Unlike conventional optimization approaches that require complete environmental knowledge or offline training, the proposed method operates online using real-time network measurements.
+
+The authors analyze several control parameters including UAV horizontal position, altitude, and Cell Individual Offset (CIO). Through simulation-based sensitivity analysis, the study concludes that horizontal positioning has the greatest impact on network performance, while altitude and CIO have comparatively smaller influence on the Call Success Rate (CSR). As a result, the proposed online algorithm primarily adjusts the UAV’s horizontal position.
+
+A major contribution of the base paper is the evaluation of multiple control metrics for UAV movement decisions. Among the evaluated metrics, the metric referred to as \textbf{CM7} was found to have the strongest correlation with CSR performance. CM7 represents the average load per user across the drone cell and the most heavily loaded neighboring cell. Using this metric, the UAV continuously adjusts its position toward regions that improve network performance.
+
+The paper demonstrates that online UAV positioning significantly improves communication performance compared to static deployment strategies. It also shows that the algorithm can dynamically adapt to moving traffic hotspots and changing user distributions without requiring prior knowledge of the environment. However, the positioning decisions are primarily focused on communication performance and do not explicitly account for UAV propulsion energy consumption. :contentReference[oaicite:1]{index=1}
 
 \section{Related Research}
-% Discuss related papers
+
+Several research works have explored UAV-assisted wireless communication systems, focusing on positioning optimization, coverage enhancement, and energy efficiency.
+
+One important supporting work is \textit{“Energy-aware Relay Positioning in Flying Networks”}. :contentReference[oaicite:2]{index=2} This paper studies the positioning of Flying Communication Relay (FCR) UAVs while considering propulsion energy consumption. The authors highlight that UAV propulsion energy dominates communication energy consumption and demonstrate that hovering is not always the most energy-efficient operating state.
+
+The paper proposes the \textbf{Energy-aware Relay Positioning (EREP)} algorithm, which determines UAV trajectories and movement speeds that minimize propulsion energy while maintaining communication quality. The work models propulsion power using blade profile, induced, and parasite power components. Simulation results show significant improvements in UAV endurance with only negligible degradation in throughput and delay performance. However, the proposed framework assumes a controlled network topology and relies on predefined environmental information, making it less suitable for lightweight real-time adaptive deployment scenarios. :contentReference[oaicite:3]{index=3}
+
+Another relevant direction in the literature involves reinforcement learning-based UAV positioning approaches. Methods such as \textit{Efficient 3D Aerial Base Station Placement Considering Users Mobility by Reinforcement Learning} employ machine learning algorithms to dynamically optimize UAV placement under changing user mobility conditions. These approaches can adapt to complex environments and varying traffic distributions. However, they typically require extensive training data, high computational resources, and long convergence times, which may limit their applicability in emergency communication scenarios requiring rapid deployment.
+
+In addition, survey papers on UAV-assisted wireless communication systems provide comprehensive overviews of UAV deployment architectures, air-to-ground propagation models, positioning strategies, energy constraints, and mobility management challenges. These studies emphasize that UAV positioning is influenced by multiple interacting factors including coverage requirements, user distribution, interference, battery limitations, and dynamic traffic conditions. They further identify energy efficiency and real-time adaptability as key research challenges in practical UAV communication systems.
+
+Collectively, existing literature demonstrates that UAV-mounted base stations can significantly improve wireless communication performance in dynamic and emergency environments. However, many existing solutions either focus solely on communication performance or rely on computationally intensive optimization methods that are difficult to implement in practical real-time systems.
 
 \section{Existing Challenges}
-% Existing limitations
+
+Despite significant advancements in UAV-assisted wireless communication systems, several important challenges still remain unresolved.
+
+A major limitation of many existing online UAV positioning algorithms is that they primarily optimize communication-centric metrics such as throughput, coverage probability, spectral efficiency, or Call Success Rate (CSR), while neglecting the propulsion energy consumed by UAV movement. Since UAVs are battery-constrained systems, continuous repositioning can rapidly deplete onboard energy and reduce operational lifetime.
+
+Another challenge arises from the dynamic nature of wireless environments. User distributions, traffic hotspots, and interference conditions may continuously change over time. Therefore, UAV positioning algorithms must rapidly adapt to changing network conditions without relying on prior environmental knowledge or offline optimization.
+
+Several machine learning and reinforcement learning-based positioning approaches have been proposed to address environmental uncertainty. However, these methods often require large training datasets, high computational complexity, and long convergence periods, making them less practical for emergency deployment scenarios where rapid response is critical.
+
+Energy-aware positioning methods such as EREP successfully incorporate propulsion energy models into UAV movement decisions. However, these approaches generally assume controlled network topology, known system parameters, or predefined trajectories, which limits their ability to operate in fully online and dynamic environments.
+
+Furthermore, there exists an important trade-off between communication performance and energy efficiency. Aggressive UAV movement may slightly improve network performance but can substantially increase propulsion energy consumption. Conversely, minimizing movement excessively may degrade coverage and CSR performance. Designing a lightweight real-time positioning framework capable of balancing this trade-off remains an open research problem.
+
+Therefore, there is a clear need for an energy-aware online UAV positioning framework that can dynamically adapt to changing wireless conditions while simultaneously considering both communication performance and UAV energy consumption. The proposed work aims to address this research gap by integrating movement energy cost into the real-time UAV positioning decision process using a lightweight control metric-based approach. :contentReference[oaicite:4]{index=4} :contentReference[oaicite:5]{index=5}
 
 % =================================================
 % PROBLEM STATEMENT
