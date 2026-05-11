@@ -11,12 +11,37 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{float}
+\usepackage{fancyhdr}
 \usepackage[colorlinks=true,
             linkcolor=blue,
             citecolor=blue,
             urlcolor=blue]{hyperref}
 
 \setstretch{1.2}
+
+% -------------------------------------------------
+% CHAPTER AND PAGE FORMATTING
+% -------------------------------------------------
+
+% Center Chapter Headings and remove gap
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\centering}
+  {\chaptertitlename\ \thechapter}
+  {0pt}
+  {\Huge}
+
+% Page numbering bottom right
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+% Ensure chapter start pages also have bottom-right numbering
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[R]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
 
 % -------------------------------------------------
 % DOCUMENT
@@ -109,7 +134,21 @@ Indian Institute of Information Technology, Pune
 % =================================================
 \tableofcontents
 \newpage
+% =================================================
+% ABSTRACT
+% =================================================
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
 
+Wireless communication networks often experience severe performance degradation during emergencies, natural disasters, infrastructure failures, and sudden traffic surges. In such situations, conventional terrestrial base stations may become overloaded or non-operational, resulting in coverage gaps and reduced quality of service. This project presents an energy-aware online positioning framework for Unmanned Aerial Vehicle Base Stations (UAV-BSs) in dynamic wireless networks.
+
+The proposed system focuses on the real-time deployment and repositioning of UAV-BSs to maximize network coverage, maintain communication reliability, and optimize energy consumption. By continuously adapting to changing user distributions and network conditions, the UAV-BS can efficiently support affected regions and improve overall network performance. The framework considers factors such as user density, communication range, mobility, and UAV battery limitations while determining optimal positioning strategies.
+
+The project highlights the importance of intelligent UAV positioning in next-generation wireless communication systems and demonstrates how adaptive aerial base stations can enhance network resilience and service continuity during critical scenarios. The proposed approach aims to provide an efficient, flexible, and scalable solution for dynamic network environments.
+
+\vspace{0.5cm}
+
+\noindent \textbf{Keywords:} UAV-BS, Wireless Communication, Dynamic Networks, Energy Optimization, Online Positioning, Unmanned Aerial Vehicle, Emergency Communication.
 % =================================================
 % INTRODUCTION
 % =================================================
@@ -582,35 +621,47 @@ These results provide a practical, computationally lightweight foundation for en
 \begin{thebibliography}{99}
 
 \bibitem{pijnappel2024online}
-T.~R. Pijnappel, J.~L. van den Berg, S.~C. Borst, and R.~Litjens,
-``Online positioning of a drone-mounted base station in emergency scenarios,''
-\textit{IEEE Trans. Veh. Technol.}, vol.~73, no.~4, pp.~5572--5586, Apr. 2024.
+T.R. Pijnappel, J.L. van den Berg, S.C. Borst, and R. Litjens,
+``Online Positioning of a Drone-Mounted Base Station in Emergency Scenarios,''
+\textit{IEEE Transactions on Vehicular Technology},
+vol. 73, no. 4, pp. 5572--5586, 2024.
+doi: 10.1109/TVT.2023.3329960.
 
 \bibitem{erep2020}
-% TODO: fill in full citation for the Energy-aware Relay Positioning (EREP) paper
-Author(s),
+Hugo Rodrigues, André Coelho, Manuel Ricardo, and Rui Campos,
 ``Energy-aware relay positioning in flying networks,''
-\textit{Journal/Conference Name}, vol.~X, no.~Y, pp.~Z--ZZ, Year.
+\textit{International Journal of Communication Systems},
+vol. 35, no. 13, 2022.
+doi: 10.1002/dac.5233.
 
 \bibitem{rl_placement}
-R.~Ghanavi, E.~Kalantari, M.~Sabbaghian, H.~Yanikomeroglu, and A.~Yongacoglu,
+Rozhina Ghanavi, Elham Kalantari, Maryam Sabbaghian,
+Halim Yanikomeroglu, and Abbas Yongacoglu,
 ``Efficient 3D aerial base station placement considering users mobility by reinforcement learning,''
-in \textit{Proc. IEEE Wireless Commun. Netw. Conf.}, 2018, pp.~1--6.
+in \textit{Proc. IEEE Wireless Communications and Networking Conference (WCNC)},
+2018, pp. 1--6.
+doi: 10.1109/WCNC.2018.8377340.
 
 \bibitem{mozaffari2019tutorial}
-M.~Mozaffari, W.~Saad, M.~Bennis, Y.-H. Nam, and M.~Debbah,
-``A tutorial on UAVs for wireless networks: Applications, challenges, and open problems,''
-\textit{IEEE Commun. Surv. Tut.}, vol.~21, no.~3, pp.~2334--2360, 2019.
+Mohammad Mozaffari, Walid Saad, Mehdi Bennis,
+Young-Han Nam, and Mérouane Debbah,
+``A Tutorial on UAVs for Wireless Networks: Applications, Challenges, and Open Problems,''
+\textit{IEEE Communications Surveys \& Tutorials},
+vol. 21, no. 3, pp. 2334--2360, 2019.
+doi: 10.1109/COMST.2019.2902862.
 
 \bibitem{kalantari2016number}
-E.~Kalantari, H.~Yanikomeroglu, and A.~Yongacoglu,
-``On the number and 3D placement of drone base stations in wireless cellular networks,''
-in \textit{Proc. IEEE 84th Veh. Technol. Conf.}, 2016, pp.~1--6.
+Elham Kalantari, Halim Yanikomeroglu, and Abbas Yongacoglu,
+``On the Number and 3D Placement of Drone Base Stations in Wireless Cellular Networks,''
+in \textit{Proc. IEEE 84th Vehicular Technology Conference (VTC-Fall)},
+2016, pp. 1--6.
+doi: 10.1109/VTCFall.2016.7881122.
 
 \bibitem{3gpp2019channel}
-3rd Generation Partnership Project,
-``Study on channel model for frequencies from 0.5 to 100~GHz,''
-3GPP, Sophia Antipolis, France, Tech. Rep. 38.901 v16.1.0, 2019.
+3rd Generation Partnership Project (3GPP),
+``Study on channel model for frequencies from 0.5 to 100 GHz,''
+Tech. Rep. 38.901 v16.1.0,
+Sophia Antipolis, France, 2019.
 
 \end{thebibliography}
 
